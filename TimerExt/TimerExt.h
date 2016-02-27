@@ -14,8 +14,8 @@
 #include <vector>
 using namespace std;
 
-#include <EEPROM.h>
-#include <EEWrap.h>
+
+#include "SerialExt.h"
 
 namespace Utils {
 
@@ -27,89 +27,10 @@ namespace Utils {
 		int Minutes;
 		int Seconds;
 		DigitalTime(int hours, int minutes, int seconds) : Hours(hours), Minutes(minutes), Seconds(seconds){}
-		//DigitalTime(int&& hours, int&& minutes, int&& seconds) : Hours(hours), Minutes(minutes), Seconds(seconds){}
-		//DigitalTime(int& hours, int& minutes, int& seconds) : Hours(hours), Minutes(minutes), Seconds(seconds){}
-		//DigitalTime(DigitalTime time) : Hours(time.hours), Minutes(minutes), Seconds(seconds){}
 	};
-	struct RunSchedule{
-		uint32_e Pin;
-		uint32_e LastRunInSeconds;
-		uint32_e NextRunInSeconds;
-		uint32_e RuntimeInSeconds;
-	};
-
-	namespace TimerExt {
-		static RunSchedule TheRunSchedule EEMEM;
-		static RunSchedule TheRunSchedule2 EEMEM;
-		static RunSchedule TheRunSchedule3 EEMEM;
-		static RunSchedule TheRunSchedule4 EEMEM;
-
-		static vector<RunSchedule> RunSchedules;
-
-		template<typename T = void>
-		static void InitSchedules()
-		{
-			TheRunSchedule.Pin = -1;
-			TheRunSchedule2.Pin = -1;
-			TheRunSchedule3.Pin = -1;
-			TheRunSchedule4.Pin = -1;
-			RunSchedules.push_back(TheRunSchedule);
-			RunSchedules.push_back(TheRunSchedule2);
-			RunSchedules.push_back(TheRunSchedule3);
-			RunSchedules.push_back(TheRunSchedule4);
-		}
-		
-		template<typename T = int>
-		static RunSchedule GetRunSchedule(T&& pin){
-			T conv(pin);
-
-			RunSchedule schedule = TheRunSchedule;
-			//int runTime = TimerExt::GetRuntimeInSeconds();
-
-			if (RunSchedules.size() <= 0){
-				InitSchedules();
-				schedule.Pin = pin;
-				//schedule.RuntimeInSeconds = runTime;
-				return schedule;
-			}
-
-			//uint32_e thePin = EEPROM.; //(uint16_e)pin;
-			uint32_e b(pin);
-			//find shedule by pin
-			bool found;
-			for (const auto& runSched : RunSchedules)
-			{
-				const uint32_e runSchedPin = runSched.Pin;
-				if (runSchedPin == pin)
-				{
-					found = true;
-					schedule = runSched;
-					break;
-				}
-			}
-
-			////if not found, find first availble one.
-			//if (!found){
-			//	short&& noPin = -1;
-			//	for (const auto& runSched : RunSchedules)
-			//	{
-			//		if (runSched.Pin == noPin)
-			//		{
-			//			found = true;
-			//			schedule = runSched;
-			//			break;
-			//		}
-			//	}
-			//}
-			//schedule.Pin = pin;
-			///schedule.RuntimeInSeconds = runTime;
-
-			return schedule;
-		}
-
 		////remeber: dependant functions must be defined first in namespace.
 		///**Better to use template functions.
-
+	namespace TimerExt{
 		template<typename H = int, typename M = int, typename S = int>
 		String FormatDigialTime(H&& hours, M&& minutes, S&& seconds)
 		{
@@ -141,7 +62,7 @@ namespace Utils {
 			return timeString;
 		}
 
-		template<int...>
+		template<typename T = void>
 		int GetRuntimeInSeconds(){
 			int s;
 			//T t(s);
@@ -203,7 +124,6 @@ namespace Utils {
 		
 		
 	}
-	
 }
 
 

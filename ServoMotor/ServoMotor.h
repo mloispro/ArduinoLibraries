@@ -18,6 +18,7 @@ using namespace std;
 
 #include "SerialExt.h"
 #include "TimerExt.h"
+#include "RunScheduleExt.h"
 #include "AnalogSwitch.h"
 using namespace Utils;
 

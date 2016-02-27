@@ -30,7 +30,6 @@ void ServoMotor::Init(){
 	//TranslateSpeed();
 	//ServoMotor motor;
 	pinMode(RelayPin, OUTPUT);
-	//TimerExt::Init();
 
 	Serial.println("Press - 1 to run, 2 to go back and forth..");
 
@@ -93,7 +92,9 @@ void ServoMotor::Run(){
 	if (signalRelay)
 		digitalWrite(RelayPin, LOW);
 
-	TimerExt::TheRunSchedule.LastRunInSeconds = TimerExt::GetRuntimeInSeconds();
+	RunScheduleExt::SaveTheRun(_pin, RunEverySeconds);
+	LastRunInSeconds = TimerExt::GetRuntimeInSeconds();
+	
 }
 
 int ServoMotor::GetNumberOfShakes(int potVal){
@@ -107,40 +108,30 @@ bool ServoMotor::ShouldSignalRelay(){
 		return true;
 	return false;
 }
-int ServoMotor::GetNextRunInSeconds(){
-	
-	RunSchedule schedule = TimerExt::GetRunSchedule(_pin);
-	int runTime = TimerExt::GetRuntimeInSeconds();
+bool ServoMotor::ShouldRunMotor()
+{
+	bool runMotor;
+	bool isTimeToRun = IsTimeToRun();
+	SerialExt::Debug("Is Time To Run: ", isTimeToRun);
 
-	//Get from EEPROM
-	LastRunInSeconds = TimerExt::TheRunSchedule.LastRunInSeconds;
-	NextRunInSeconds = TimerExt::TheRunSchedule.NextRunInSeconds;
-	
-	SerialExt::Debug("saved LastRunInSeconds: ", LastRunInSeconds);
-	SerialExt::Debug("saved NextRunInSeconds: ", NextRunInSeconds);
+	bool isSwitchOn;
+	//see if this motor has a switch
+	if (TheSwitch.AnalogPin >= 0){
 
+		if (isTimeToRun)
+			isSwitchOn = TheSwitch.IsOn();
 
-	SerialExt::Debug("runTime: ", runTime);
-	if (runTime < 30){ //00:00:00
-		int difference = NextRunInSeconds - LastRunInSeconds; //00:00:10
-		SerialExt::Debug("difference: ", difference);
-		NextRunInSeconds = runTime + difference; //00:00:10
-		LastRunInSeconds = 0;
-		
+		if (isSwitchOn)
+			SerialExt::Debug("Switch Val: ", TheSwitch.SwitchReading);
 	}
 	else{
-		NextRunInSeconds = LastRunInSeconds + RunEverySeconds;
+		isSwitchOn = true; //no switch to turn it on.
 	}
-	SerialExt::Print("Last Run: ", TimerExt::GetDigitalTimeFromSeconds(LastRunInSeconds));
-	SerialExt::Print("Next Run: ", TimerExt::GetDigitalTimeFromSeconds(NextRunInSeconds));
 
-	//Save to EEPROM
-	TimerExt::TheRunSchedule.LastRunInSeconds = LastRunInSeconds;
-	TimerExt::TheRunSchedule.NextRunInSeconds = NextRunInSeconds;
-
-	//Save(LastRunInSeconds, NextRunInSeconds);
-	return NextRunInSeconds;
+	runMotor = (isTimeToRun) && (isSwitchOn);
+	return runMotor;
 }
+
 bool ServoMotor::IsTimeToRun(){
 	int nextRun = GetNextRunInSeconds();
 	int runTime = TimerExt::GetRuntimeInSeconds();
@@ -149,6 +140,55 @@ bool ServoMotor::IsTimeToRun(){
 	}
 	return false;
 }
+
+int ServoMotor::GetNextRunInSeconds(){
+	
+	RunSchedule schedule = RunScheduleExt::GetRunSchedule(_pin);
+	int runTime = TimerExt::GetRuntimeInSeconds();
+
+	int elapsedTime = runTime - _lastRun;
+
+	if (_runCountDown <= 0 && _lastRun <= 0){ //first run
+		_runCountDown = runEvery - runTime;
+		nextRun = _runCountDown;
+		//return nextRun;
+	}
+	else if (elapsedTime > runEvery){
+		_runCountDown = 0;
+		nextRun = runTime;
+	}
+	else if (_lastRun > runTime){
+		_lastRun = 0;
+		_runCountDown = _runCountDown - runTime;
+		nextRun = runTime + _runCountDown;
+	}
+	else{
+		if (_lastRun <= 0){ //restart, or countdown expired
+			_runCountDown = _runCountDown - runTime;
+		}
+		else{
+			_runCountDown = runEvery - elapsedTime;
+			nextRun = _lastRun + runEvery;
+		}
+
+	}
+	if (_runCountDown <= 0){ //needs to run set to 0
+		_runCountDown = 0;
+		nextRun = runTime;
+	}
+	
+	SerialExt::Print("Last Run: ", TimerExt::GetDigitalTimeFromSeconds(LastRunInSeconds));
+	SerialExt::Print("Next Run: ", TimerExt::GetDigitalTimeFromSeconds(NextRunInSeconds));
+
+	//Save to EEPROM
+	//schedule.LastRunInSeconds = LastRunInSeconds;
+	SerialExt::Debug("nextRunInt2: ", TimerExt::GetDigitalTimeFromSeconds(nextRunInt));
+	SerialExt::Debug("schedule.NextRun2: ", TimerExt::GetDigitalTimeFromSeconds(schedule.NextRun));
+
+	//Save(LastRunInSeconds, NextRunInSeconds);
+	return NextRunInSeconds;
+}
+
 void ServoMotor::RunMotorDemo(Servo myServo){
 	Serial.println("Demoing motor..");
 	int pos = 0;
@@ -182,29 +222,7 @@ bool ServoMotor::ShouldRunMotorBySerialInput(int incomingByte){
 		return false;
 	}
 }
-bool ServoMotor::ShouldRunMotor()
-{
-	bool runMotor;
-	bool isTimeToRun = IsTimeToRun();
-	SerialExt::Debug("Is Time To Run: ", isTimeToRun);
 
-	bool isSwitchOn;
-	//see if this motor has a switch
-	if (TheSwitch.AnalogPin >= 0){
-
-		if (isTimeToRun)
-			isSwitchOn = TheSwitch.IsOn();
-
-		if (isSwitchOn)
-			SerialExt::Debug("Switch Val: ", TheSwitch.SwitchReading);
-	}
-	else{
-		isSwitchOn = true; //no switch to turn it on.
-	}
-
-	runMotor = (isTimeToRun) && (isSwitchOn);
-	return runMotor;
-}
 //1 to run, 2 to run demo
 bool ServoMotor::ShouldRunMotorDemo(int incomingByte){
 
