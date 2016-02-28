@@ -31,6 +31,9 @@ void ServoMotor::Init(){
 	//ServoMotor motor;
 	pinMode(RelayPin, OUTPUT);
 
+	//if (RunEverySeconds > 0)
+	//	RTCExt::Init(); //using rtc
+	
 	Serial.println("Press - 1 to run, 2 to go back and forth..");
 
 	Serial.print("Translated Speed: ");
@@ -92,8 +95,12 @@ void ServoMotor::Run(){
 	if (signalRelay)
 		digitalWrite(RelayPin, LOW);
 
-	RunScheduleExt::SaveTheRun(_pin, RunEverySeconds);
-	LastRunInSeconds = TimerExt::GetRuntimeInSeconds();
+	//LastRunInSeconds = TimerExt::GetRuntimeInSeconds();
+	//RunScheduleExt::SaveTheRun(_pin, RunEverySeconds, LastRunInSeconds);
+	
+	if (RunEverySeconds>0)
+		LastRunInSeconds = RTCExt::GetRTCTime(); //using rtc
+	
 	
 }
 
@@ -108,11 +115,20 @@ bool ServoMotor::ShouldSignalRelay(){
 		return true;
 	return false;
 }
-bool ServoMotor::ShouldRunMotor()
+bool ServoMotor::ShouldRunMotor(bool printToSerial)
 {
 	bool runMotor;
 	bool isTimeToRun = IsTimeToRun();
 	SerialExt::Debug("Is Time To Run: ", isTimeToRun);
+
+	if (printToSerial && RunEverySeconds>0) //using rtc
+	{
+		SerialExt::Print("Time: ", RTCExt::GetDigitalTimeString(RTCExt::GetRTCTime()));
+		SerialExt::Print("Run Count Down: ", RTCExt::GetDigitalTimeString(RunCountDownInSeconds));
+		SerialExt::Print("Next Run: ", RTCExt::GetDigitalTimeString(NextRunInSeconds));
+		SerialExt::Print("Last Run: ", RTCExt::GetDigitalTimeString(LastRunInSeconds));
+		SerialExt::Print("Run Every: ", RTCExt::GetDigitalTimeString(RunEverySeconds));
+	}
 
 	bool isSwitchOn;
 	//see if this motor has a switch
@@ -133,61 +149,86 @@ bool ServoMotor::ShouldRunMotor()
 }
 
 bool ServoMotor::IsTimeToRun(){
-	int nextRun = GetNextRunInSeconds();
-	int runTime = TimerExt::GetRuntimeInSeconds();
+
+	if (RunEverySeconds <= 0)return true; //not using rtc
+
+	time_t runTime = RTCExt::GetRTCTime();
+	time_t nextRun = GetNextRunInSeconds(runTime);
+	//int runTime = TimerExt::GetRuntimeInSeconds();
 	if (nextRun <= runTime){
 		return true;
 	}
 	return false;
 }
 
-int ServoMotor::GetNextRunInSeconds(){
-	
-	RunSchedule schedule = RunScheduleExt::GetRunSchedule(_pin);
-	int runTime = TimerExt::GetRuntimeInSeconds();
+time_t ServoMotor::GetNextRunInSeconds(time_t runTime){
 
-	int elapsedTime = runTime - _lastRun;
-
-	if (_runCountDown <= 0 && _lastRun <= 0){ //first run
-		_runCountDown = runEvery - runTime;
-		nextRun = _runCountDown;
-		//return nextRun;
+	if (NextRunInSeconds <= 0){
+		NextRunInSeconds = runTime;
 	}
-	else if (elapsedTime > runEvery){
-		_runCountDown = 0;
-		nextRun = runTime;
-	}
-	else if (_lastRun > runTime){
-		_lastRun = 0;
-		_runCountDown = _runCountDown - runTime;
-		nextRun = runTime + _runCountDown;
+	if (LastRunInSeconds <= 0){
+		NextRunInSeconds = NextRunInSeconds + RunEverySeconds;
 	}
 	else{
-		if (_lastRun <= 0){ //restart, or countdown expired
-			_runCountDown = _runCountDown - runTime;
-		}
-		else{
-			_runCountDown = runEvery - elapsedTime;
-			nextRun = _lastRun + runEvery;
-		}
-
-	}
-	if (_runCountDown <= 0){ //needs to run set to 0
-		_runCountDown = 0;
-		nextRun = runTime;
+		NextRunInSeconds = LastRunInSeconds + RunEverySeconds;
 	}
 	
-	SerialExt::Print("Last Run: ", TimerExt::GetDigitalTimeFromSeconds(LastRunInSeconds));
-	SerialExt::Print("Next Run: ", TimerExt::GetDigitalTimeFromSeconds(NextRunInSeconds));
+	RunCountDownInSeconds = runTime - NextRunInSeconds;
 
-	//Save to EEPROM
-	//schedule.LastRunInSeconds = LastRunInSeconds;
-	SerialExt::Debug("nextRunInt2: ", TimerExt::GetDigitalTimeFromSeconds(nextRunInt));
-	SerialExt::Debug("schedule.NextRun2: ", TimerExt::GetDigitalTimeFromSeconds(schedule.NextRun));
-
-	//Save(LastRunInSeconds, NextRunInSeconds);
 	return NextRunInSeconds;
 }
+
+//not complete, doesnt handle restart or power outage.
+//int ServoMotor::GetNextRunInSeconds(){
+//	
+//	RunSchedule schedule = RunScheduleExt::GetRunSchedule(_pin);
+//	int runTime = TimerExt::GetRuntimeInSeconds();
+//	int nextRunCountDown = schedule.NextRunCountDown;
+//
+//	int elapsedTime = runTime - schedule.LastRunInSeconds;
+//
+//	if (nextRunCountDown <= 0 && schedule.LastRunInSeconds <= 0){ //first run
+//		NextRunInSeconds = RunEverySeconds - runTime;
+//		nextRunCountDown = NextRunInSeconds;
+//		
+//		//return nextRun;
+//	}
+//	else if (elapsedTime > NextRunInSeconds){
+//		nextRunCountDown = 0;
+//		NextRunInSeconds = runTime;
+//	}
+//	else if (NextRunInSeconds > runTime){
+//		LastRunInSeconds = 0;
+//		nextRunCountDown = nextRunCountDown - runTime;
+//		NextRunInSeconds = runTime + schedule.NextRunCountDown;
+//	}
+//	else{
+//		if (LastRunInSeconds <= 0){ //restart, or countdown expired
+//			nextRunCountDown = nextRunCountDown - runTime;
+//		}
+//		else{
+//			nextRunCountDown = RunEverySeconds - elapsedTime;
+//			NextRunInSeconds = LastRunInSeconds + RunEverySeconds;
+//		}
+//
+//	}
+//	if (nextRunCountDown <= 0){ //needs to run set to 0
+//		nextRunCountDown = 0;
+//		NextRunInSeconds = runTime;
+//	}
+//	
+//	SerialExt::Print("Last Run: ", TimerExt::GetDigitalTimeFromSeconds(LastRunInSeconds));
+//	SerialExt::Print("Next Run: ", TimerExt::GetDigitalTimeFromSeconds(NextRunInSeconds));
+//
+//	//Save to EEPROM
+//	//schedule.LastRunInSeconds = LastRunInSeconds;
+//	schedule.NextRunCountDown = nextRunCountDown;
+//
+//	SerialExt::Debug("nextRunCountDown: ", TimerExt::GetDigitalTimeFromSeconds(nextRunCountDown));
+//	SerialExt::Debug("NextRunCountDown: ", TimerExt::GetDigitalTimeFromSeconds(schedule.NextRunCountDown));
+//
+//	return NextRunInSeconds;
+//}
 
 void ServoMotor::RunMotorDemo(Servo myServo){
 	Serial.println("Demoing motor..");

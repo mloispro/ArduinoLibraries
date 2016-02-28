@@ -1,7 +1,7 @@
 // SerialExt.h
 
-#ifndef _TIMEREXT_h
-#define _TIMEREXT_h
+#ifndef RTCEXT_h
+#define RTCEXT_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "arduino.h"
@@ -14,6 +14,11 @@
 #include <vector>
 using namespace std;
 
+#include <Wire.h>
+#include <TimeLib.h>
+#include <Time.h>
+#include <DS3232RTC.h>
+
 
 #include "SerialExt.h"
 #include "DigitalTime.h"
@@ -24,7 +29,10 @@ namespace Utils {
 
 		////remeber: dependant functions must be defined first in namespace.
 		///**Better to use template functions.
-	namespace TimerExt{
+	namespace RTCExt{
+
+		//static bool _initalized;
+
 		template<typename H = int, typename M = int, typename S = int>
 		String FormatDigialTime(H&& hours, M&& minutes, S&& seconds)
 		{
@@ -45,7 +53,7 @@ namespace Utils {
 			String timeString = hourString + ":";
 			timeString += minString + ":";
 			timeString += secString;
-			
+
 			return timeString;
 		}
 
@@ -55,71 +63,57 @@ namespace Utils {
 			T conv(time);
 			String timeString = FormatDigialTime(time.Hours, time.Minutes, time.Seconds);
 			return timeString;
-		}		
-
-		template<typename T = void>
-		int GetRuntimeInSeconds(){
-			int s;
-			//T t(s);
-			s = millis() / 1000;
-			return s;
 		}
-
-		
-		
-		template<typename T = int>
-		DigitalTime GetTimeFromSeconds(T&& seconds){
+		template<typename T = time_t>
+		DigitalTime GetDigitalTime(T&& seconds){
 			T conv(seconds);
-	
+
 			int h, m, s;
-			s = seconds;
-			m = s / 60;
-			h = s / 3600;
-			s = s - m * 60;
-			m = m - h * 60;
+			s = second(seconds); //seconds;
+			m = minute(seconds);
+			h = hour(seconds);
+
 			DigitalTime time = DigitalTime(h, m, s);
 
 			return time;
 		}
-		
-		template<typename T = int>
-		String GetDigitalTimeFromSeconds(T&& seconds){
+		template<typename T = time_t>
+		String GetDigitalTimeString(T&& seconds){
 			T conv(seconds);
-			DigitalTime time = GetTimeFromSeconds(seconds);
+
+			DigitalTime time = GetDigitalTime(seconds);
 
 			String runTime = FormatDigialTime(time);
 			return runTime;
 		}
-		template<typename T = String>
-		T GetDigitalRuntime(){
-			int s = GetRuntimeInSeconds();
+		template<typename T = void>
+		time_t GetRTCTime()
+		{
+			return now();
+		}
+		template<typename T = void>
+		void Init(){
 
-			String runTime = GetDigitalTimeFromSeconds(s);
-			return runTime;
+			//if (_initalized) return;
+
+			setSyncProvider(RTC.get);   // the function to get the time from the RTC
+			if (timeStatus() != timeSet)
+				SerialExt::Print("Unable to sync with the RTC");
+			else{
+				String digitalTime = GetDigitalTimeString(GetRTCTime());
+				SerialExt::Print("RTC Initialized: ", digitalTime);
+				//_initalized = true;
+			}
 		}
 		
 		template<typename T = void>
-		void PrintDigitalRuntime(){
-			String runtime = GetDigitalRuntime();
-			Serial.print("System Run Time: ");
-			Serial.println(runtime);
+		void SetRTCTime(int theHour, int theMinute, int theSecond, int theDay, int theMonth, int theYear)
+		{
+			//23h31m30s on 13Feb2009
+			//setTime(8, 22, 00, 28, 2, 2016);
+			setTime(theHour, theMinute, theSecond, theDay, theMonth, theYear);
+			RTC.set(now());
 		}
-
-		template<typename T = int>
-		void PrintDigitalTime(T&& seconds){
-			T conv(seconds);
-			String dTime = GetDigitalTimeFromSeconds(seconds);
-			Serial.println(dTime);
-		}
-		//template<typename T = RunTime>
-		//void Save(T&& lastRunTime){
-		//	T conv(lastRunTime);
-		//	//T2 conv2(nextRunTime);
-
-		//	T lastRunTime EEMEM;
-		//}
-		
-		
 	}
 }
 

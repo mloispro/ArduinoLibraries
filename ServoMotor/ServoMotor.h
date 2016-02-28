@@ -17,8 +17,8 @@ using namespace std;
 #include <Servo.h>
 
 #include "SerialExt.h"
-#include "TimerExt.h"
-#include "RunScheduleExt.h"
+#include "RTCExt.h"
+//#include "RunScheduleExt.h" <- only needed for non RTC Timer
 #include "AnalogSwitch.h"
 using namespace Utils;
 
@@ -31,6 +31,7 @@ private:
 	void TranslateSpeed();
 	bool ShouldSignalRelay();
 	int GetNextRunInSeconds();
+	time_t GetNextRunInSeconds(time_t runTime);
 	bool IsTimeToRun();
 
 protected:
@@ -54,14 +55,15 @@ public:
 	Servo TheServo;
 	AnalogSwitch TheSwitch;
 	int Shakes;
-	int LastRunInSeconds;
+	time_t LastRunInSeconds;
 	int RunEverySeconds;
-	int NextRunInSeconds;
+	time_t NextRunInSeconds;
+	time_t RunCountDownInSeconds;
 	short RelayPin;
 	
 	//static RunTime Schedule;
 
-	bool ShouldRunMotor();
+	bool ShouldRunMotor(bool printToSerial);
 
 	//1 to run, 2 to run demo
 	static bool ShouldRunMotorBySerialInput(int incomingByte);

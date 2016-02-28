@@ -14,14 +14,15 @@ namespace Utils {
 
 		//T& will only take references, T&& will take ref, pointer, or val, so always do this.
 		
-		template<typename T = void>
-		extern void Init()
-		{
-			// initialize serial:
-			Serial.begin(9600);
-			//Wait for four seconds or till data is available on serial, whichever occurs first.
-			while (Serial.available() == 0 && millis() < 2000);
-		}
+		//template<typename T = void>
+		//void Init()
+		//{
+		//	// initialize serial:
+		//	Serial.begin(9600);
+		//	//Wait for four seconds or till data is available on serial, whichever occurs first.
+		//	//while (!Serial);
+		//	while (Serial.available() == 0 && millis() < 2000);
+		//}
 		
 		template<typename T>
 		extern void Print(T&& text)

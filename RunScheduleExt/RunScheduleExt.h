@@ -36,6 +36,8 @@ namespace Utils {
 		static RunSchedule TheRunSchedule2 EEMEM;
 		static RunSchedule TheRunSchedule3 EEMEM;
 		static RunSchedule TheRunSchedule4 EEMEM;
+		static RunSchedule TheRunSchedule5 EEMEM;
+		static RunSchedule TheRunSchedule6 EEMEM;
 
 		static vector<RunSchedule> RunSchedules;
 
@@ -46,10 +48,14 @@ namespace Utils {
 			TheRunSchedule2.Pin = -1;
 			TheRunSchedule3.Pin = -1;
 			TheRunSchedule4.Pin = -1;
+			TheRunSchedule5.Pin = -1;
+			TheRunSchedule6.Pin = -1;
 			RunSchedules.push_back(TheRunSchedule);
 			RunSchedules.push_back(TheRunSchedule2);
 			RunSchedules.push_back(TheRunSchedule3);
 			RunSchedules.push_back(TheRunSchedule4);
+			RunSchedules.push_back(TheRunSchedule5);
+			RunSchedules.push_back(TheRunSchedule6);
 		}
 
 		template<typename T = int>
@@ -57,7 +63,7 @@ namespace Utils {
 			T conv(pin);
 
 			RunSchedule schedule = TheRunSchedule;
-			int runTime = TimerExt::GetRuntimeInSeconds();
+			//int runTime = TimerExt::GetRuntimeInSeconds();
 
 			//if there are no schedules, then create them.
 			if (RunSchedules.size() <= 0){
@@ -97,21 +103,21 @@ namespace Utils {
 				}
 			}
 			schedule.Pin = pin;
-			//schedule.RuntimeInSeconds = runTime;
 
 			Utils::SerialExt::Debug("schedule.Pin :", schedule.Pin);
-//			Utils::SerialExt::Debug("schedule.RuntimeInSeconds :", schedule.RuntimeInSeconds);
 
 			return schedule;
 		}
 
-		template<typename T = int, typename T2 = int>
-		void SaveTheRun(T&& pin, T2&& runNext){
+		template<typename T = int, typename T2 = int, typename T3 = int>
+		void SaveTheRun(T&& pin, T2&& runCountDown, T3&& lastRun){
 			T conv(pin);
+			T2 conv2(runCountDown);
+			T3 conv3(lastRun);
 
 			RunSchedule schedule = GetRunSchedule(pin);
-			schedule.NextRunCountDown = runNext;
-			schedule.LastRunInSeconds = TimerExt::GetRuntimeInSeconds();
+			schedule.NextRunCountDown = runCountDown;
+			schedule.LastRunInSeconds = lastRun;
 		}
 		
 	}
