@@ -18,6 +18,7 @@ public:
 	int SwitchReading;
 	AnalogSwitch(short analogPin, int max);
 	AnalogSwitch(short analogPin);
+	AnalogSwitch();
 	bool IsOn();
 	void Init();
 };

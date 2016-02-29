@@ -86,6 +86,39 @@ namespace Utils {
 			String runTime = FormatDigialTime(time);
 			return runTime;
 		}
+		template<typename T = time_t>
+		String GetMonthAndDateString(T&& seconds){
+			T conv(seconds);
+			
+			String theDate;
+
+			int theDay = day(seconds);
+			int theMonth = month(seconds);
+
+			String dayString = String(theDay);
+			if (theDay < 10)
+				dayString = "0" + dayString;
+			String monthString = String(theMonth);
+			if (theMonth < 10)
+				monthString = "0" + monthString;
+			
+			theDate = monthString + "/" + dayString;
+
+			return theDate;
+		}
+		template<typename T = time_t>
+		String GetShortDateTimeString(T&& seconds){
+			T conv(seconds);
+
+			String result;
+
+			String theDate = GetMonthAndDateString(seconds);
+			String theTime = GetDigitalTimeString(seconds);
+
+			result = theDate + " " + theTime;
+			return result;
+
+		}
 		template<typename T = void>
 		time_t GetRTCTime()
 		{

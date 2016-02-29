@@ -10,6 +10,7 @@ AnalogSwitch::AnalogSwitch(short analogPin) :
 AnalogPin(analogPin){
 	Init();
 };
+AnalogSwitch::AnalogSwitch(){};
 
 void AnalogSwitch::Init(){
 	if (AnalogPin >= 0 && AnalogPin <= 5)

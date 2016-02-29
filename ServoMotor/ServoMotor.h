@@ -36,16 +36,17 @@ private:
 
 protected:
 	
-	ServoMotor(Servo servo, int pin, int shakes, int runEverySeconds);
+	ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds);
 	ServoMotor(Servo servo, int pin, int shakes, short relayPin);
 	ServoMotor(Servo servo, int pin, int shakes);
-	ServoMotor(Servo servo, int pin, int shakes, short relayPin, int runEverySeconds);
-	ServoMotor(Servo servo, int pin, int shakes, short relayPin, int runEverySeconds, AnalogSwitch theSwitch);
+	ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds);
+	ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch);
 
 	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed);
 	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin);
-	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, int runEverySeconds);
-	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, int runEverySeconds, AnalogSwitch theSwitch);
+	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, long runEverySeconds);
+	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, long runEverySeconds, AnalogSwitch theSwitch);
+	ServoMotor();
 	
 	static int GetNumberOfShakes(int potVal);
 	void Run();
@@ -56,7 +57,7 @@ public:
 	AnalogSwitch TheSwitch;
 	int Shakes;
 	time_t LastRunInSeconds;
-	int RunEverySeconds;
+	long RunEverySeconds;
 	time_t NextRunInSeconds;
 	time_t RunCountDownInSeconds;
 	short RelayPin;
@@ -64,6 +65,7 @@ public:
 	//static RunTime Schedule;
 
 	bool ShouldRunMotor(bool printToSerial);
+	void PrintSerialInstructions();
 
 	//1 to run, 2 to run demo
 	static bool ShouldRunMotorBySerialInput(int incomingByte);

@@ -4,10 +4,10 @@
 ServoMotor::ServoMotor(Servo servo, int pin, int shakes) :
 	ServoMotor(servo, pin, shakes, 0, 14){};
 
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int runEverySeconds) :
+ServoMotor::ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds) :
 	ServoMotor(servo, pin, shakes, 0, 14, 0, runEverySeconds){};
 
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin, int runEverySeconds, AnalogSwitch theSwitch) :
+ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
 	ServoMotor(servo, pin, shakes, 0, 14, relayPin, runEverySeconds, theSwitch){};
 
 ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed) :
@@ -19,21 +19,27 @@ ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, 
 ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin) :
 	ServoMotor(servo, pin, shakes, 0, 14, relayPin){};
 
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, int runEverySeconds, AnalogSwitch theSwitch) :
+ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
 TheServo(servo), _pin(pin), Shakes(shakes), _pos(pos), _theSpeed(theSpeed), RelayPin(relayPin), RunEverySeconds(runEverySeconds), TheSwitch(theSwitch){
 		TranslateSpeed();
 		Init();
 	};
-
+ServoMotor::ServoMotor(){};
 
 void ServoMotor::Init(){
 	//TranslateSpeed();
 	//ServoMotor motor;
 	pinMode(RelayPin, OUTPUT);
 
-	//if (RunEverySeconds > 0)
-	//	RTCExt::Init(); //using rtc
-	
+	if (RunEverySeconds > 0){
+		RTCExt::Init(); //using rtc
+		NextRunInSeconds = RTCExt::GetRTCTime() + RunEverySeconds;
+	}
+		
+	TheServo.attach(_pin);
+
+}
+void ServoMotor::PrintSerialInstructions(){
 	Serial.println("Press - 1 to run, 2 to go back and forth..");
 
 	Serial.print("Translated Speed: ");
@@ -43,10 +49,7 @@ void ServoMotor::Init(){
 	Serial.println(Shakes);
 
 	SerialExt::Print("Servo attached to Pin: ", _pin);
-	TheServo.attach(_pin);
-
 }
-
 void ServoMotor::Run(){
 	bool signalRelay = ShouldSignalRelay();
 	SerialExt::Debug("ShouldSignalRelay: ", signalRelay);
@@ -123,10 +126,10 @@ bool ServoMotor::ShouldRunMotor(bool printToSerial)
 
 	if (printToSerial && RunEverySeconds>0) //using rtc
 	{
-		SerialExt::Print("Time: ", RTCExt::GetDigitalTimeString(RTCExt::GetRTCTime()));
+		SerialExt::Print("Time: ", RTCExt::GetShortDateTimeString(RTCExt::GetRTCTime()));
 		SerialExt::Print("Run Count Down: ", RTCExt::GetDigitalTimeString(RunCountDownInSeconds));
-		SerialExt::Print("Next Run: ", RTCExt::GetDigitalTimeString(NextRunInSeconds));
-		SerialExt::Print("Last Run: ", RTCExt::GetDigitalTimeString(LastRunInSeconds));
+		SerialExt::Print("Next Run: ", RTCExt::GetShortDateTimeString(NextRunInSeconds));
+		SerialExt::Print("Last Run: ", RTCExt::GetShortDateTimeString(LastRunInSeconds));
 		SerialExt::Print("Run Every: ", RTCExt::GetDigitalTimeString(RunEverySeconds));
 	}
 
@@ -163,17 +166,30 @@ bool ServoMotor::IsTimeToRun(){
 
 time_t ServoMotor::GetNextRunInSeconds(time_t runTime){
 
-	if (NextRunInSeconds <= 0){
-		NextRunInSeconds = runTime;
-	}
-	if (LastRunInSeconds <= 0){
-		NextRunInSeconds = NextRunInSeconds + RunEverySeconds;
-	}
-	else{
+	if (NextRunInSeconds <= 0)
+		NextRunInSeconds = runTime + RunEverySeconds; //08:51:49
+
+	if (LastRunInSeconds > 0 && NextRunInSeconds <= runTime){
 		NextRunInSeconds = LastRunInSeconds + RunEverySeconds;
 	}
-	
-	RunCountDownInSeconds = runTime - NextRunInSeconds;
+	RunCountDownInSeconds = NextRunInSeconds - runTime; //00:00:06
+
+	if (NextRunInSeconds <= runTime){
+		NextRunInSeconds = runTime;
+		RunCountDownInSeconds = 0;
+	}
+
+	//if (NextRunInSeconds <= 0){
+	//	NextRunInSeconds = runTime;
+	//}
+	//if (LastRunInSeconds <= 0){
+	//	NextRunInSeconds = NextRunInSeconds + RunEverySeconds;
+	//}
+	//else{
+	//	NextRunInSeconds = LastRunInSeconds + RunEverySeconds;
+	//}
+	//
+	//RunCountDownInSeconds = runTime - NextRunInSeconds;
 
 	return NextRunInSeconds;
 }
