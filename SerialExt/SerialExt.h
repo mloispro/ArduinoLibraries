@@ -37,6 +37,7 @@ namespace Utils {
 			F f(val);
 			Serial.print(text);
 			Serial.println(val);
+			Serial.flush();
 		}
 		template<typename T, typename F, typename G>
 		extern void Print(T&& text, F&& val, G&& val2)
@@ -52,11 +53,34 @@ namespace Utils {
 		//static return example
 		template <int... T>
 		extern auto Read() -> int{
-			if (Serial.available() > 0) {
-				int incomingbyte = Serial.read(); // read the incoming byte:
-				//T t(incomingbyte);
-				SerialExt::Print("Incomming byte: ", incomingbyte);
-				return incomingbyte;
+			
+			int num;
+			while (Serial.available() > 0) {
+				//int incomingbyte = Serial.read(); Serial.readString();// read the incoming byte:
+				
+				int option = Serial.parseInt();
+				long val = 0;
+				String valString = "";
+				if (Serial.read() == '-') {
+					val = Serial.parseInt();
+					valString = String(val);
+				}
+				
+				String optionString(option);
+				String numString = optionString + valString;
+				num = numString.toInt();
+
+				if (Serial.read() == '\n') {
+					break;
+				}
+
+				//int num = 5;
+
+				//SerialExt::Print("Incomming Text: ", incomingbyte);
+			}
+			if (num > 0){
+				SerialExt::Print("Incomming number: ", num);
+				return num;
 			}
 			return 0;
 		}
@@ -77,6 +101,7 @@ namespace Utils {
 			String msg = String("~DEBUG~ ") + text;
 			Serial.print(msg);
 			Serial.println(val);
+			Serial.flush();
 		}
 		
 	}

@@ -104,7 +104,7 @@ namespace Utils {
 			}
 			schedule.Pin = pin;
 
-			Utils::SerialExt::Debug("schedule.Pin :", schedule.Pin);
+			//Utils::SerialExt::Debug("schedule.Pin :", schedule.Pin);
 
 			return schedule;
 		}

@@ -94,6 +94,7 @@ namespace Utils {
 
 			int theDay = day(seconds);
 			int theMonth = month(seconds);
+			int theYear = year(seconds);
 
 			String dayString = String(theDay);
 			if (theDay < 10)
@@ -101,8 +102,9 @@ namespace Utils {
 			String monthString = String(theMonth);
 			if (theMonth < 10)
 				monthString = "0" + monthString;
+			String yearString = String(theYear);
 			
-			theDate = monthString + "/" + dayString;
+			theDate = monthString + "/" + dayString + "/" + yearString;
 
 			return theDate;
 		}

@@ -21,10 +21,30 @@ ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin) :
 
 ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
 TheServo(servo), _pin(pin), Shakes(shakes), _pos(pos), _theSpeed(theSpeed), RelayPin(relayPin), RunEverySeconds(runEverySeconds), TheSwitch(theSwitch){
-		TranslateSpeed();
-		Init();
-	};
+	TranslateSpeed();
+	Init();
+};
 ServoMotor::ServoMotor(){};
+
+int ServoMotor::SetShakes(int shakes){
+	//PinValMemoryExt::SavePinVal(_pin, shakes);
+	PinValMemoryExt::ThePinValMemory.Pin = _pin;
+	PinValMemoryExt::ThePinValMemory.Value = shakes;
+
+	int savedShakes = PinValMemoryExt::ThePinValMemory.Value;
+	//SerialExt::Debug("shakes: ", savedShakes);
+	Shakes = savedShakes;
+	//SerialExt::Debug("Shakes: ", Shakes);
+}
+int ServoMotor::GetShakes(){
+	int shakes = PinValMemoryExt::ThePinValMemory.Value;
+	//SerialExt::Debug("get shakes: ", shakes);
+	if (shakes > -1){
+		Shakes = shakes;
+	}
+
+	return Shakes;
+}
 
 void ServoMotor::Init(){
 	//TranslateSpeed();
@@ -34,25 +54,28 @@ void ServoMotor::Init(){
 	if (RunEverySeconds > 0){
 		RTCExt::Init(); //using rtc
 		NextRunInSeconds = RTCExt::GetRTCTime() + RunEverySeconds;
+		if (LastRunInSeconds > NextRunInSeconds)
+			LastRunInSeconds = RTCExt::GetRTCTime();
 	}
 		
 	TheServo.attach(_pin);
 
 }
 void ServoMotor::PrintSerialInstructions(){
-	Serial.println("Press - 1 to run, 2 to go back and forth..");
+	Serial.println("1 to Run, 2 to Demo.");
+	Serial.println("3-# to set Shakes, ex: 3-4.");
 
 	Serial.print("Translated Speed: ");
 	Serial.println(_theSpeed);
 
 	Serial.print("Shake while feeding: ");
-	Serial.println(Shakes);
+	Serial.println(GetShakes());
 
 	SerialExt::Print("Servo attached to Pin: ", _pin);
 }
 void ServoMotor::Run(){
 	bool signalRelay = ShouldSignalRelay();
-	SerialExt::Debug("ShouldSignalRelay: ", signalRelay);
+	//SerialExt::Debug("ShouldSignalRelay: ", signalRelay);
 	
 	if (signalRelay){
 		SerialExt::Print("Signaling Relay Pin: ", RelayPin);
@@ -76,7 +99,7 @@ void ServoMotor::Run(){
 		TheServo.write(downPos);              // tell servo to go to position in variable 'pos'
 		delay(_theSpeed);                 // waits 15ms for the servo to reach the position
 	}
-	if (Shakes > 0){
+	if (GetShakes() > 0){
 		SerialExt::Print("Shaking: ", Shakes, " Times");
 		//delay(4000);
 		int shakeCount = 0;
@@ -89,7 +112,7 @@ void ServoMotor::Run(){
 			shakeCount++;
 		}
 	}
-	SerialExt::Print("Resetting Servo Angle: ", _pos);
+	//SerialExt::Print("Resetting Servo Angle: ", _pos);
 	TheServo.write(_pos);
 	delay(2000); // wait for servo to get back to 0
 	TheServo.detach();
@@ -122,7 +145,7 @@ bool ServoMotor::ShouldRunMotor(bool printToSerial)
 {
 	bool runMotor;
 	bool isTimeToRun = IsTimeToRun();
-	SerialExt::Debug("Is Time To Run: ", isTimeToRun);
+	//SerialExt::Debug("Is Time To Run: ", isTimeToRun);
 
 	if (printToSerial && RunEverySeconds>0) //using rtc
 	{
@@ -140,8 +163,8 @@ bool ServoMotor::ShouldRunMotor(bool printToSerial)
 		if (isTimeToRun)
 			isSwitchOn = TheSwitch.IsOn();
 
-		if (isSwitchOn)
-			SerialExt::Debug("Switch Val: ", TheSwitch.SwitchReading);
+		//if (isSwitchOn)
+			//SerialExt::Debug("Switch Val: ", TheSwitch.SwitchReading);
 	}
 	else{
 		isSwitchOn = true; //no switch to turn it on.
@@ -269,11 +292,12 @@ void ServoMotor::RunMotorDemos(vector<ServoMotor> motors){
 
 	}
 }
+
 //1 to run, 2 to run demo
 bool ServoMotor::ShouldRunMotorBySerialInput(int incomingByte){
 
 	switch (incomingByte) {
-	case 49: //1
+	case 1: //1
 		return true;
 	default:
 		return false;
@@ -284,7 +308,7 @@ bool ServoMotor::ShouldRunMotorBySerialInput(int incomingByte){
 bool ServoMotor::ShouldRunMotorDemo(int incomingByte){
 
 	switch (incomingByte) {
-	case 50: //2
+	case 2: //2
 		return true;
 	default:
 		return false;
@@ -340,4 +364,30 @@ void ServoMotor::TranslateSpeed(){
 		break;
 	}
 }
+bool ServoMotor::ProcessSerialInput(int incomingNum, vector<ServoMotor> motors){
+	bool processed;
 
+	for (int thisMotor = 0; thisMotor < motors.size(); thisMotor++) {
+		ServoMotor motor = motors[thisMotor];
+
+		processed = motor.ProcessSerialInput(incomingNum);
+
+	}
+
+	return processed;
+}
+bool ServoMotor::ProcessSerialInput(int incomingNum){
+	bool processed;
+
+	String inString(incomingNum);
+	if (inString.length()>1 && inString.startsWith("3")){
+		//set shakes
+		String shakesString = inString.substring(1);
+		long shks = shakesString.toInt();
+		//SerialExt::Debug("shks: ", shks);
+		SetShakes(shks);
+		processed = true;
+	}
+
+	return processed;
+}

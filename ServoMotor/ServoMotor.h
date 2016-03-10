@@ -19,6 +19,7 @@ using namespace std;
 #include "SerialExt.h"
 #include "RTCExt.h"
 //#include "RunScheduleExt.h" <- only needed for non RTC Timer
+#include "PinValMemoryExt.h"
 #include "AnalogSwitch.h"
 using namespace Utils;
 
@@ -66,10 +67,17 @@ public:
 
 	bool ShouldRunMotor(bool printToSerial);
 	void PrintSerialInstructions();
+	int SetShakes(int shakes);
+	int GetShakes();
+	bool ProcessSerialInput(int incomingNum);
 
+	//3-6 = 6 shakes, returns true if could process successfully
+	static bool ProcessSerialInput(int incomingNum, vector<ServoMotor> motors);
+	
 	//1 to run, 2 to run demo
 	static bool ShouldRunMotorBySerialInput(int incomingByte);
 	static bool ShouldRunMotorDemo(int incomingByte);
+
 };
 
 #endif
