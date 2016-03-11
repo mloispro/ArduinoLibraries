@@ -28,16 +28,16 @@ ServoMotor::ServoMotor(){};
 
 int ServoMotor::SetShakes(int shakes){
 	//PinValMemoryExt::SavePinVal(_pin, shakes);
-	PinValMemoryExt::ThePinValMemory.Pin = _pin;
-	PinValMemoryExt::ThePinValMemory.Value = shakes;
+	//PinValMemoryExt::ThePinValMemory.Pin = _pin;
+	PinValMemoryExt::ThePinValMemory9.Value = shakes;
 
-	int savedShakes = PinValMemoryExt::ThePinValMemory.Value;
+	int savedShakes = PinValMemoryExt::ThePinValMemory9.Value;
 	//SerialExt::Debug("shakes: ", savedShakes);
 	Shakes = savedShakes;
 	//SerialExt::Debug("Shakes: ", Shakes);
 }
 int ServoMotor::GetShakes(){
-	int shakes = PinValMemoryExt::ThePinValMemory.Value;
+	int shakes = PinValMemoryExt::ThePinValMemory9.Value;
 	//SerialExt::Debug("get shakes: ", shakes);
 	if (shakes > -1){
 		Shakes = shakes;
@@ -189,30 +189,38 @@ bool ServoMotor::IsTimeToRun(){
 
 time_t ServoMotor::GetNextRunInSeconds(time_t runTime){
 
-	if (NextRunInSeconds <= 0)
-		NextRunInSeconds = runTime + RunEverySeconds; //08:51:49
+	long memCountDown = PinValMemoryExt::ThePinValMemory9.Value2;
 
-	if (LastRunInSeconds > 0 && NextRunInSeconds <= runTime){
-		NextRunInSeconds = LastRunInSeconds + RunEverySeconds;
+	//SerialExt::Debug("memCountDown: ", memCountDown);
+	//SerialExt::Debug("RunCountDownInSeconds: ", RunCountDownInSeconds);
+	//SerialExt::Debug("NextRunInSeconds: ", NextRunInSeconds);
+	
+	if (memCountDown != RunCountDownInSeconds){
+		//take count down from memory, adruino restarted
+		NextRunInSeconds = runTime + memCountDown;
+		RunCountDownInSeconds = memCountDown;
+		//SerialExt::Debug("NextRunInSeconds2: ", NextRunInSeconds);
 	}
-	RunCountDownInSeconds = NextRunInSeconds - runTime; //00:00:06
+	else{
+		if (NextRunInSeconds <= 0){
 
-	if (NextRunInSeconds <= runTime){
-		NextRunInSeconds = runTime;
-		RunCountDownInSeconds = 0;
+			NextRunInSeconds = runTime + RunEverySeconds; //08:51:49
+
+		}
+
+		if (LastRunInSeconds > 0 && NextRunInSeconds <= runTime){
+			NextRunInSeconds = LastRunInSeconds + RunEverySeconds;
+		}
+		RunCountDownInSeconds = NextRunInSeconds - runTime; //00:00:06
+
+		if (NextRunInSeconds <= runTime){
+			NextRunInSeconds = runTime;
+			RunCountDownInSeconds = 0;
+		}
 	}
 
-	//if (NextRunInSeconds <= 0){
-	//	NextRunInSeconds = runTime;
-	//}
-	//if (LastRunInSeconds <= 0){
-	//	NextRunInSeconds = NextRunInSeconds + RunEverySeconds;
-	//}
-	//else{
-	//	NextRunInSeconds = LastRunInSeconds + RunEverySeconds;
-	//}
-	//
-	//RunCountDownInSeconds = runTime - NextRunInSeconds;
+	PinValMemoryExt::ThePinValMemory9.Value2 = RunCountDownInSeconds;
+
 
 	return NextRunInSeconds;
 }

@@ -23,18 +23,18 @@ using namespace std;
 namespace Utils {
 
 	struct PinValMemory{
-		int16_e Pin;
 		int64_e Value;
+		int64_e Value2;
 	};
 		////remeber: dependant functions must be defined first in namespace.
 		///**Better to use template functions.
 	namespace PinValMemoryExt {
-		static PinValMemory ThePinValMemory EEMEM;
-		static PinValMemory ThePinValMemory2 EEMEM;
-		static PinValMemory ThePinValMemory3 EEMEM;
-		static PinValMemory ThePinValMemory4 EEMEM;
-		static PinValMemory ThePinValMemory5 EEMEM;
+		static PinValMemory ThePinValMemory9 EEMEM;
+		static PinValMemory ThePinValMemory8 EEMEM;
+		static PinValMemory ThePinValMemory7 EEMEM;
 		static PinValMemory ThePinValMemory6 EEMEM;
+		static PinValMemory ThePinValMemory5 EEMEM;
+		static PinValMemory ThePinValMemory4 EEMEM;
 
 		/*static vector<PinValMemory> PinValMemoryCollection;
 
