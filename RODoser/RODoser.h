@@ -28,6 +28,7 @@ private:
 
 public:
 	RODoser(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch);
+	RODoser(Servo servo, int pin, int shakes, long runEverySeconds, AnalogSwitch theSwitch);
 	RODoser();
 	static void RunDemo(vector<RODoser> dosers);
 	void Dose();

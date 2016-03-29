@@ -2,12 +2,15 @@
 #include "RODoser.h"
 
 RODoser::RODoser(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
-ServoMotor(servo, pin, shakes, relayPin, runEverySeconds, theSwitch){};
+	ServoMotor(servo, pin, shakes, relayPin, runEverySeconds, theSwitch){};
+
+RODoser::RODoser(Servo servo, int pin, int shakes, long runEverySeconds, AnalogSwitch theSwitch) :
+	ServoMotor(servo, pin, shakes, runEverySeconds, theSwitch){};
 
 RODoser::RODoser(){};
 
 void RODoser::Dose(){
-	
+	_theSpeed = 10;
 	Run();
 }
 

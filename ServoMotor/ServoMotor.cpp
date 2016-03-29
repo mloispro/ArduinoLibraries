@@ -10,6 +10,9 @@ ServoMotor::ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds) :
 ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
 	ServoMotor(servo, pin, shakes, 0, 14, relayPin, runEverySeconds, theSwitch){};
 
+ServoMotor::ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds, AnalogSwitch theSwitch) :
+	ServoMotor(servo, pin, shakes, 0, 14, -1, runEverySeconds, theSwitch){};
+
 ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed) :
 	ServoMotor(servo, pin, shakes, pos, theSpeed, 0){};
 
@@ -49,7 +52,8 @@ int ServoMotor::GetShakes(){
 void ServoMotor::Init(){
 	//TranslateSpeed();
 	//ServoMotor motor;
-	pinMode(RelayPin, OUTPUT);
+	if (RelayPin >= 2 && RelayPin <= 13)
+		pinMode(RelayPin, OUTPUT);
 
 	if (RunEverySeconds > 0){
 		RTCExt::Init(); //using rtc
@@ -59,6 +63,8 @@ void ServoMotor::Init(){
 	}
 		
 	TheServo.attach(_pin);
+	TheServo.write(_pos);
+	delay(200);
 
 }
 void ServoMotor::PrintSerialInstructions(){
@@ -68,7 +74,7 @@ void ServoMotor::PrintSerialInstructions(){
 	Serial.print("Translated Speed: ");
 	Serial.println(_theSpeed);
 
-	Serial.print("Shake while feeding: ");
+	Serial.print("Shakes: ");
 	Serial.println(GetShakes());
 
 	SerialExt::Print("Servo attached to Pin: ", _pin);
@@ -89,7 +95,24 @@ void ServoMotor::Run(){
 		delay(100);
 	}
 
+	RunServo();
+	
+	if (signalRelay)
+		digitalWrite(RelayPin, LOW);
+
+	//LastRunInSeconds = TimerExt::GetRuntimeInSeconds();
+	//RunScheduleExt::SaveTheRun(_pin, RunEverySeconds, LastRunInSeconds);
+	
+	if (RunEverySeconds>0)
+		LastRunInSeconds = RTCExt::GetRTCTime(); //using rtc
+}
+
+void ServoMotor::RunServo(){
 	TheServo.write(_pos);
+	delay(500);
+
+	TranslateSpeed();
+	SerialExt::Debug("_theSpeed", _theSpeed);
 
 	int downAngle = 200;
 	//int feedAngle = 180 - _pos;
@@ -117,17 +140,73 @@ void ServoMotor::Run(){
 	delay(2000); // wait for servo to get back to 0
 	TheServo.detach();
 	delay(1000);
-	
-	if (signalRelay)
-		digitalWrite(RelayPin, LOW);
+}
 
-	//LastRunInSeconds = TimerExt::GetRuntimeInSeconds();
-	//RunScheduleExt::SaveTheRun(_pin, RunEverySeconds, LastRunInSeconds);
-	
-	if (RunEverySeconds>0)
-		LastRunInSeconds = RTCExt::GetRTCTime(); //using rtc
-	
-	
+//void ServoMotor::RunServo(){
+//	TheServo.write(_pos);
+//
+//	int downAngle = 200;
+//	//int feedAngle = 180 - _pos;
+//	//_utils.Debug("FeedAngle: ", feedAngle);
+//	for (int downPos = _pos; downPos <= downAngle; downPos += 1) { // goes from 0 degrees to 180 degrees
+//		// in steps of 1 degree
+//		TheServo.write(downPos);              // tell servo to go to position in variable 'pos'
+//		delay(_theSpeed);                 // waits 15ms for the servo to reach the position
+//	}
+//	if (GetShakes() > 0){
+//		SerialExt::Print("Shaking: ", Shakes, " Times");
+//		//delay(4000);
+//		int shakeCount = 0;
+//		while (shakeCount < Shakes){
+//			TheServo.write(downAngle - 120);
+//			delay(220);
+//			TheServo.write(downAngle);
+//			delay(220);
+//
+//			shakeCount++;
+//		}
+//	}
+//	//SerialExt::Print("Resetting Servo Angle: ", _pos);
+//	TheServo.write(_pos);
+//	delay(2000); // wait for servo to get back to 0
+//	TheServo.detach();
+//	delay(1000);
+//}
+
+void ServoMotor::RunThreeSixtyServo(){
+	SerialExt::Print("360 Servo");
+	_pos = 580;
+	TheServo.write(_pos);
+
+	int downAngle = 2380;
+	TheServo.write(downAngle);
+
+	////int feedAngle = 180 - _pos;
+	////_utils.Debug("FeedAngle: ", feedAngle);
+	//for (int downPos = _pos; downPos <= downAngle; downPos += 1) { // goes from 0 degrees to 180 degrees
+	//	// in steps of 1 degree
+	//	TheServo.write(downPos);              // tell servo to go to position in variable 'pos'
+	//	delay(_theSpeed);                 // waits 15ms for the servo to reach the position
+	//}
+	//if (GetShakes() > 0){
+	//	SerialExt::Print("Shaking: ", Shakes, " Times");
+	//	//delay(4000);
+	//	int shakeCount = 0;
+	//	while (shakeCount < Shakes){
+	//		TheServo.write(downAngle - 120);
+	//		delay(220);
+	//		TheServo.write(downAngle);
+	//		delay(220);
+
+	//		shakeCount++;
+	//	}
+	//}
+	//SerialExt::Print("Resetting Servo Angle: ", _pos);
+
+	TheServo.write(_pos);
+	delay(2000); // wait for servo to get back to 0
+	TheServo.detach();
+	delay(1000);
 }
 
 int ServoMotor::GetNumberOfShakes(int potVal){
@@ -156,6 +235,13 @@ bool ServoMotor::ShouldRunMotor(bool printToSerial)
 		SerialExt::Print("Run Every: ", RTCExt::GetDigitalTimeString(RunEverySeconds));
 	}
 
+	bool isSwitchOn = IsSwitchOn(isTimeToRun);
+
+	runMotor = (isTimeToRun) && (isSwitchOn);
+	return runMotor;
+}
+
+bool ServoMotor::IsSwitchOn(bool isTimeToRun){
 	bool isSwitchOn;
 	//see if this motor has a switch
 	if (TheSwitch.AnalogPin >= 0){
@@ -163,15 +249,13 @@ bool ServoMotor::ShouldRunMotor(bool printToSerial)
 		if (isTimeToRun)
 			isSwitchOn = TheSwitch.IsOn();
 
-		//if (isSwitchOn)
-			//SerialExt::Debug("Switch Val: ", TheSwitch.SwitchReading);
+		/*if (isSwitchOn)
+			SerialExt::Debug("Switch Val: ", TheSwitch.SwitchReading);*/
 	}
 	else{
 		isSwitchOn = true; //no switch to turn it on.
 	}
-
-	runMotor = (isTimeToRun) && (isSwitchOn);
-	return runMotor;
+	return isSwitchOn;
 }
 
 bool ServoMotor::IsTimeToRun(){

@@ -27,20 +27,24 @@ class ServoMotor {
 private:
 	int _pin;
 	int _pos;
-	int _theSpeed;
 	void Init();
 	void TranslateSpeed();
 	bool ShouldSignalRelay();
 	int GetNextRunInSeconds();
 	time_t GetNextRunInSeconds(time_t runTime);
 	bool IsTimeToRun();
+	bool IsSwitchOn(bool isTimeToRun);
+	void RunThreeSixtyServo();
+	void RunServo();
 
 protected:
-	
+	int _theSpeed;
+
 	ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds);
 	ServoMotor(Servo servo, int pin, int shakes, short relayPin);
 	ServoMotor(Servo servo, int pin, int shakes);
 	ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds);
+	ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds, AnalogSwitch theSwitch);
 	ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch);
 
 	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed);
@@ -62,7 +66,7 @@ public:
 	time_t NextRunInSeconds;
 	time_t RunCountDownInSeconds;
 	short RelayPin;
-	
+	bool ThreeSixtyServo;
 	//static RunTime Schedule;
 
 	bool ShouldRunMotor(bool printToSerial);

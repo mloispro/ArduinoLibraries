@@ -643,8 +643,8 @@ bool RF24::begin(void)
   {
     p_variant = true ;
   }
-  /*setup = read_register(RF_SETUP);
-  if( setup == 0b00001110 )     // register default for nRF24L01P
+  setup = read_register(RF_SETUP);
+  /*if( setup == 0b00001110 )     // register default for nRF24L01P
   {
     p_variant = true ;
   }*/
@@ -1016,7 +1016,12 @@ bool RF24::txStandBy(uint32_t timeout, bool startTx){
 
 void RF24::maskIRQ(bool tx, bool fail, bool rx){
 
-	write_register(CONFIG, ( read_register(CONFIG) ) | fail << MASK_MAX_RT | tx << MASK_TX_DS | rx << MASK_RX_DR  );
+	uint8_t config = read_register(CONFIG);
+	/* clear the interrupt flags */
+	config &= ~(1 << MASK_MAX_RT | 1 << MASK_TX_DS | 1 << MASK_RX_DR);
+	/* set the specified interrupt flags */
+	config |= fail << MASK_MAX_RT | tx << MASK_TX_DS | rx << MASK_RX_DR;
+	write_register(CONFIG, config);
 }
 
 /****************************************************************************/
