@@ -156,7 +156,7 @@ namespace Utils {
 		template<typename T = void>
 		time_t GetRTCTime()
 		{
-			return RTC.get();//now();
+			return now(); //RTC.get();
 		}
 		template<typename T = void>
 		void Init(){
