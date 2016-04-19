@@ -15,6 +15,7 @@
 using namespace std;
 
 
+#include <Time.h>
 #include "SerialExt.h"
 
 namespace Models {
@@ -26,6 +27,7 @@ namespace Models {
 		int Hours;
 		int Minutes;
 		int Seconds;
+		
 		DigitalTime(int hours, int minutes, int seconds) : Hours(hours), Minutes(minutes), Seconds(seconds){}
 	};
 }

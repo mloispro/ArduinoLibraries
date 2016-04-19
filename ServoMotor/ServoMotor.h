@@ -34,7 +34,6 @@ private:
 	time_t GetNextRunInSeconds(time_t runTime);
 	bool IsTimeToRun();
 	bool IsSwitchOn(bool isTimeToRun);
-	void RunThreeSixtyServo();
 	void RunServo();
 
 protected:
@@ -66,7 +65,6 @@ public:
 	time_t NextRunInSeconds;
 	time_t RunCountDownInSeconds;
 	short RelayPin;
-	bool ThreeSixtyServo;
 	//static RunTime Schedule;
 
 	bool ShouldRunMotor(bool printToSerial);

@@ -10,6 +10,18 @@
 #endif
 
 namespace Utils {
+
+	enum AccessoryType
+	{
+		None,
+		Clock,
+		Feeder,
+		LiqDoser,
+		DryDoser,
+		Pump,
+		Lcd
+	};
+
 	namespace SerialExt{
 
 		//T& will only take references, T&& will take ref, pointer, or val, so always do this.
@@ -89,7 +101,7 @@ namespace Utils {
 		extern void Debug(T&& text)
 		{
 			T t(text);
-			String msg = String("~DEBUG~ ") + text;
+			String msg = String("~ ") + text;
 			Serial.println(msg);
 		}
 		//use debug prints for debug statements that should be removed, after debugging.
@@ -98,8 +110,10 @@ namespace Utils {
 		{
 			T t(text);
 			F f(val);
-			String msg = String("~DEBUG~ ") + text;
-			Serial.print(msg);
+
+			//auto msg = "~ " + text + ": " + val;
+			String msg = String("~ ") + text;
+			Serial.print(msg + ": ");
 			Serial.println(val);
 			Serial.flush();
 		}
