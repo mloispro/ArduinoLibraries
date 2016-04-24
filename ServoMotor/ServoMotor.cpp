@@ -56,12 +56,15 @@ void ServoMotor::Init(){
 	
 	NextRunMemory& mem = RTCExt::FindNextRunInfo(ServoType);
 
-	if (mem.NextRun <= 0 && RunEverySeconds >= 0)
-		mem.NextRun = RunEverySeconds;
+	SerialExt::Debug(F("mem.RunEvery"), (long)mem.RunEvery);
+	SerialExt::Debug(F("RunEverySeconds"), RunEverySeconds);
 
-	if (RunEverySeconds > 0 || mem.NextRun > 0){
-		RunEverySeconds = mem.NextRun;
-		RTCExt::Init(); //using rtc
+	if (mem.RunEvery <= 0 && RunEverySeconds >= 0)
+		mem.RunEvery = RunEverySeconds;
+
+	if (RunEverySeconds > 0 || mem.RunEvery > 0){
+		RunEverySeconds = mem.RunEvery;
+		//RTCExt::Init(); //using rtc
 	}
 		
 	TheServo.attach(_pin);
@@ -70,30 +73,30 @@ void ServoMotor::Init(){
 
 }
 void ServoMotor::PrintSerialInstructions(){
-	Serial.println("1 to Run, 2 to Demo.");
-	Serial.println("3-# to set Shakes, ex: 3-4.");
+	Serial.println(F("1 to Run, 2 to Demo."));
+	Serial.println(F("3-# to set Shakes, ex: 3-4."));
 
-	Serial.print("Translated Speed: ");
+	Serial.print(F("Translated Speed: "));
 	Serial.println(_theSpeed);
 
-	Serial.print("Shakes: ");
+	Serial.print(F("Shakes: "));
 	Serial.println(GetShakes());
 
-	SerialExt::Print("Servo attached to Pin: ", _pin);
+	SerialExt::Print(F("Servo attached to Pin: "), _pin);
 }
 void ServoMotor::Run(){
 	bool signalRelay = ShouldSignalRelay();
 	//SerialExt::Debug("ShouldSignalRelay: ", signalRelay);
 	
 	if (signalRelay){
-		SerialExt::Print("Signaling Relay Pin: ", RelayPin);
+		SerialExt::Print(F("Signaling Relay Pin: "), RelayPin);
 		digitalWrite(RelayPin, HIGH);
 	}
 	
 	TheServo.detach();
 	while (!TheServo.attached()){ //wait until servo is attached.
 		TheServo.attach(_pin);
-		SerialExt::Print("Servo Attached: ", TheServo.attached());
+		SerialExt::Print(F("Servo Attached: "), TheServo.attached());
 		delay(100);
 	}
 
@@ -113,7 +116,7 @@ void ServoMotor::RunServo(){
 	delay(500);
 
 	TranslateSpeed();
-	SerialExt::Debug("_theSpeed", _theSpeed);
+	SerialExt::Debug(F("_theSpeed"), _theSpeed);
 
 	int downAngle = 200;
 	//int feedAngle = 180 - _pos;
@@ -124,7 +127,7 @@ void ServoMotor::RunServo(){
 		delay(_theSpeed);                 // waits 15ms for the servo to reach the position
 	}
 	if (GetShakes() > 0){
-		SerialExt::Print("Shaking: ", Shakes, " Times");
+		SerialExt::Print(F("Shaking: "), Shakes, F(" Times"));
 		//delay(4000);
 		int shakeCount = 0;
 		while (shakeCount < Shakes){
@@ -196,7 +199,7 @@ bool ServoMotor::IsSwitchOn(bool isTimeToRun){
 
 
 void ServoMotor::RunMotorDemo(Servo myServo){
-	Serial.println("Demoing motor..");
+	Serial.println(F("Demoing motor.."));
 	int pos = 0;
 	for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
 		// in steps of 1 degree

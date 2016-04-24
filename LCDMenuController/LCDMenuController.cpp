@@ -2,69 +2,87 @@
 
 using namespace Controllers;
 
-LiquidCrystal LCDMenuController::_lcd(8, 9, 4, 5, 6, 7);
+//LiquidCrystal LCDMenuController::_lcd(8, 9, 4, 5, 6, 7);
+//LiquidCrystal _lcd(8, 13, 9, 4, 5, 6, 7)
 
-LCDMenuController::LCDMenuController()
-{
+//LCDMenuController::LCDMenuController()
+//{
+//	_lcd(8, 13, 9, 4, 5, 6, 7);
+//	CreateMenus();
+//}
+void LCDMenuController::Init(){
+	RTCExt::Init();
+	_lcd.begin(16, 2);
+	_lcd.clear();
+	_lcd.setCursor(0, 0);
 	CreateMenus();
-}
 
+	if (!RTCExt::IsRTCTimeSet())
+		SetClockMenu();
+}
 void LCDMenuController::CreateMenus()
 {
+	
+	const String mainMenuText = F("Menu: [>] Exit");
+	const String feedMenuText = F("Feeder: [<] Back");
+	const String doserMenuText = F("Doser: [<] Back");
+	const String clockMenuText = F("Clock: [<] Back");
 
 	if (_menus.size() > 0)
 		_menus.clear();
 
+	/*_lcd.begin();*/
 	//menus
-	AddMenu(mainMenu, 0, feedMenu, mainMenu, "Menu: [>] Exit", "Feeder", LCDMenu::RangeType::Nav);
-	AddMenu(mainMenu, 1, doserMenu, mainMenu, "Menu: [>] Exit", "Doser", LCDMenu::RangeType::Nav);
-	AddMenu(mainMenu, 2, clockMenu, mainMenu, "Menu: [>] Exit", "Clock", LCDMenu::RangeType::Nav);
+	AddMenu(mainMenu, 0, feedMenu, mainMenu, mainMenuText, F("Feeder"), LCDMenu::RangeType::Nav);
+	AddMenu(mainMenu, 1, doserMenu, mainMenu, mainMenuText, F("Doser"), LCDMenu::RangeType::Nav);
+	AddMenu(mainMenu, 2, clockMenu, mainMenu, mainMenuText, F("Clock"), LCDMenu::RangeType::Nav);
 
 	//feed menus
-	AddMenu(feedMenu, 0, feedTimeMenu, mainMenu, "Feeder: [<] Back", "Feed Time", LCDMenu::RangeType::Nav, AccessoryType::Feeder);
-	AddMenu(feedMenu, 1, feedFreqMenu, mainMenu, "Feeder: [<] Back", "Set Feed Time", LCDMenu::RangeType::Nav, AccessoryType::Feeder);
-	AddMenu(feedMenu, 2, feedShakesMenu, mainMenu, "Feeder: [<] Back", "Set Feed Shakes", LCDMenu::RangeType::Nav, AccessoryType::Feeder);
+	AddMenu(feedMenu, 0, feedTimeMenu, mainMenu, feedMenuText, F("Feed Time"), LCDMenu::RangeType::Nav, AccessoryType::Feeder);
+	AddMenu(feedMenu, 1, feedFreqMenu, mainMenu, feedMenuText, F("Set Feed Time"), LCDMenu::RangeType::Nav, AccessoryType::Feeder);
+	AddMenu(feedMenu, 2, feedShakesMenu, mainMenu, feedMenuText, F("Set Feed Shakes"), LCDMenu::RangeType::Nav, AccessoryType::Feeder);
 
 	//feed time
-	AddMenu(feedTimeMenu, 0, feedTimeMenu, feedMenu, "Feed Time: [<] Back", "Not Set", LCDMenu::RangeType::TimeFrequency, AccessoryType::Feeder);
-	AddMenu(feedFreqMenu, 0, feedHourMenu, feedMenu, "Feed Frequency: [<] Back", "Frequency", LCDMenu::RangeType::Frequency, AccessoryType::Feeder);
-	AddMenu(feedHourMenu, 0, feedMinMenu, feedFreqMenu, "Feed Hour: [<] Back", "Hour", LCDMenu::RangeType::Hour, AccessoryType::Feeder);
-	AddMenu(feedMinMenu, 0, feedAmPmMenu, feedHourMenu, "Feed Minute: [<] Back", "Minute", LCDMenu::RangeType::Minute, AccessoryType::Feeder);
-	AddMenu(feedAmPmMenu, 0, feedTimeMenu, feedMinMenu, "Feed AM-PM: [<] Back", "AM PM", LCDMenu::RangeType::AmPm, AccessoryType::Feeder);
+	AddMenu(feedTimeMenu, 0, feedTimeMenu, feedMenu, F("Feed Time: [<] Back"), F(""), LCDMenu::RangeType::TimeFrequency, AccessoryType::Feeder);
+	AddMenu(feedFreqMenu, 0, feedHourMenu, feedMenu, F("Feed Frequency: [<] Back"), F(""), LCDMenu::RangeType::Frequency, AccessoryType::Feeder);
+	AddMenu(feedHourMenu, 0, feedMinMenu, feedFreqMenu, F("Feed Hour: [<] Back"), F(""), LCDMenu::RangeType::Hour, AccessoryType::Feeder);
+	AddMenu(feedMinMenu, 0, feedAmPmMenu, feedHourMenu, F("Feed Minute: [<] Back"), F(""), LCDMenu::RangeType::Minute, AccessoryType::Feeder);
+	AddMenu(feedAmPmMenu, 0, feedTimeMenu, feedMinMenu, F("Feed AM-PM: [<] Back"), F(""), LCDMenu::RangeType::AmPm, AccessoryType::Feeder);
 
 	//feed shakes
-	AddMenu(feedShakesMenu, 0, feedShakesMenu, feedMenu, "Feed Shakes: [<] Back", "Not Set", LCDMenu::RangeType::ShakesOrTurns, AccessoryType::Feeder);
-	AddMenu(feedShakesMenu, 1, feedSetShakesMenu, feedShakesMenu, "Feed Shakes: [<] Back", "Set Feed Shakes", LCDMenu::RangeType::Nav, AccessoryType::Feeder);
-	AddMenu(feedSetShakesMenu, 0, feedShakesMenu, feedShakesMenu, "Set Feed Shakes: [<] Back", "Not Set", LCDMenu::RangeType::SetShakesOrTurns, AccessoryType::Feeder);
+	AddMenu(feedShakesMenu, 0, feedShakesMenu, feedMenu, F("Feed Shakes: [<] Back"), F("Not Set"), LCDMenu::RangeType::ShakesOrTurns, AccessoryType::Feeder);
+	AddMenu(feedShakesMenu, 1, feedSetShakesMenu, feedShakesMenu, F("Feed Shakes: [<] Back"), F("Set Feed Shakes"), LCDMenu::RangeType::Nav, AccessoryType::Feeder);
+	AddMenu(feedSetShakesMenu, 0, feedShakesMenu, feedShakesMenu, F("Set Feed Shakes: [<] Back"), F("Not Set"), LCDMenu::RangeType::SetShakesOrTurns, AccessoryType::Feeder);
 
 	//doser menus
-	AddMenu(doserMenu, 0, doserTimeMenu, mainMenu, "Doser: [<] Back", "Doser Time", LCDMenu::RangeType::Nav, AccessoryType::DryDoser);
-	AddMenu(doserMenu, 1, doserFreqMenu, mainMenu, "Doser: [<] Back", "Set Doser Time", LCDMenu::RangeType::Nav, AccessoryType::DryDoser);
-	AddMenu(doserMenu, 2, doserShakesMenu, mainMenu, "Doser: [<] Back", "Set Doser Shakes", LCDMenu::RangeType::Nav, AccessoryType::DryDoser);
+	AddMenu(doserMenu, 0, doserTimeMenu, mainMenu, doserMenuText, F("Doser Time"), LCDMenu::RangeType::Nav, AccessoryType::DryDoser);
+	AddMenu(doserMenu, 1, doserFreqMenu, mainMenu, doserMenuText, F("Set Doser Time"), LCDMenu::RangeType::Nav, AccessoryType::DryDoser);
+	AddMenu(doserMenu, 2, doserShakesMenu, mainMenu, doserMenuText, F("Set Doser Shakes"), LCDMenu::RangeType::Nav, AccessoryType::DryDoser);
 
 	//dose time
-	AddMenu(doserTimeMenu, 0, doserTimeMenu, doserMenu, "Doser Time: [<] Back", "Not Set", LCDMenu::RangeType::TimeFrequency, AccessoryType::DryDoser);
-	AddMenu(doserFreqMenu, 0, doserHourMenu, doserMenu, "Doser Frequency: [<] Back", "Frequency", LCDMenu::RangeType::Frequency, AccessoryType::DryDoser);
-	AddMenu(doserHourMenu, 0, doserMinMenu, doserFreqMenu, "Doser Hour: [<] Back", "Hour", LCDMenu::RangeType::Hour, AccessoryType::DryDoser);
-	AddMenu(doserMinMenu, 0, doserAmPmMenu, doserHourMenu, "Doser Minute: [<] Back", "Minute", LCDMenu::RangeType::Minute, AccessoryType::DryDoser);
-	AddMenu(doserAmPmMenu, 0, doserTimeMenu, doserMinMenu, "Doser AM-PM: [<] Back", "AM PM", LCDMenu::RangeType::AmPm, AccessoryType::DryDoser);
+	AddMenu(doserTimeMenu, 0, doserTimeMenu, doserMenu, F("Doser Time: [<] Back"), F(""), LCDMenu::RangeType::TimeFrequency, AccessoryType::DryDoser);
+	AddMenu(doserFreqMenu, 0, doserHourMenu, doserMenu, F("Doser Frequency: [<] Back"), F(""), LCDMenu::RangeType::Frequency, AccessoryType::DryDoser);
+	AddMenu(doserHourMenu, 0, doserMinMenu, doserFreqMenu, F("Doser Hour: [<] Back"), F(""), LCDMenu::RangeType::Hour, AccessoryType::DryDoser);
+	AddMenu(doserMinMenu, 0, doserAmPmMenu, doserHourMenu, F("Doser Minute: [<] Back"), F(""), LCDMenu::RangeType::Minute, AccessoryType::DryDoser);
+	AddMenu(doserAmPmMenu, 0, doserTimeMenu, doserMinMenu, F("Doser AM-PM: [<] Back"), F(""), LCDMenu::RangeType::AmPm, AccessoryType::DryDoser);
 
 	//doser shakes
-	AddMenu(doserShakesMenu, 0, doserShakesMenu, doserMenu, "Doser Shakes: [<] Back", "Not Set", LCDMenu::RangeType::ShakesOrTurns, AccessoryType::DryDoser);
-	AddMenu(doserShakesMenu, 1, doserSetShakesMenu, doserShakesMenu, "Doser Shakes: [<] Back", "Set Doser Shakes", LCDMenu::RangeType::Nav, AccessoryType::DryDoser);
-	AddMenu(doserSetShakesMenu, 0, doserShakesMenu, doserShakesMenu, "Set Doser Shakes: [<] Back", "Not Set", LCDMenu::RangeType::SetShakesOrTurns, AccessoryType::DryDoser);
-
+	AddMenu(doserShakesMenu, 0, doserShakesMenu, doserMenu, F("Doser Shakes: [<] Back"), F(""), LCDMenu::RangeType::ShakesOrTurns, AccessoryType::DryDoser);
+	AddMenu(doserShakesMenu, 1, doserSetShakesMenu, doserShakesMenu, F("Doser Shakes: [<] Back"), F("Set Doser Shakes"), LCDMenu::RangeType::Nav, AccessoryType::DryDoser);
+	AddMenu(doserSetShakesMenu, 0, doserShakesMenu, doserShakesMenu, F("Set Doser Shakes: [<] Back"), F(""), LCDMenu::RangeType::SetShakesOrTurns, AccessoryType::DryDoser);
 
 	//clock menus
-	AddMenu(clockMenu, 0, clockMenu, mainMenu, "Clock: [<] Back", "Time", LCDMenu::RangeType::TimeLong, AccessoryType::Clock);
-	AddMenu(clockMenu, 1, clockYearMenu, clockMenu, "Clock: [<] Back", "Set Clock Time", LCDMenu::RangeType::Nav, AccessoryType::Clock);
-	AddMenu(clockYearMenu, 0, clockMonthMenu, clockMenu, "Clock Year: [<] Back", "Year", LCDMenu::RangeType::Year, AccessoryType::Clock);
-	AddMenu(clockMonthMenu, 0, clockDayMenu, clockYearMenu, "Clock Month: [<] Back", "Month", LCDMenu::RangeType::Month, AccessoryType::Clock);
-	AddMenu(clockDayMenu, 0, clockHourMenu, clockMonthMenu, "Clock Day: [<] Back", "Day", LCDMenu::RangeType::Day, AccessoryType::Clock);
-	AddMenu(clockHourMenu, 0, clockMinMenu, clockDayMenu, "Clock Hour: [<] Back", "", LCDMenu::RangeType::Hour, AccessoryType::Clock);
-	AddMenu(clockMinMenu, 0, clockAmPmMenu, clockHourMenu, "Clock Min: [<] Back", "", LCDMenu::RangeType::Minute, AccessoryType::Clock);
-	AddMenu(clockAmPmMenu, 0, clockMenu, clockMinMenu, "Clock AM-PM: [<] Back", "", LCDMenu::RangeType::AmPm, AccessoryType::Clock);
+	AddMenu(clockMenu, 0, clockMenu, mainMenu, clockMenuText, F("Time"), LCDMenu::RangeType::TimeLong, AccessoryType::Clock);
+	AddMenu(clockMenu, 1, clockYearMenu, clockMenu, clockMenuText, F("Set Clock Time"), LCDMenu::RangeType::Nav, AccessoryType::Clock);
+	AddMenu(clockYearMenu, 0, clockMonthMenu, clockMenu, F("Clock Year: [<] Back"), F(""), LCDMenu::RangeType::Year, AccessoryType::Clock);
+	AddMenu(clockMonthMenu, 0, clockDayMenu, clockYearMenu, F("Clock Month: [<] Back"), F(""), LCDMenu::RangeType::Month, AccessoryType::Clock);
+	AddMenu(clockDayMenu, 0, clockHourMenu, clockMonthMenu, F("Clock Day: [<] Back"), F(""), LCDMenu::RangeType::Day, AccessoryType::Clock);
+	AddMenu(clockHourMenu, 0, clockMinMenu, clockDayMenu, F("Clock Hour: [<] Back"), F(""), LCDMenu::RangeType::Hour, AccessoryType::Clock);
+	AddMenu(clockMinMenu, 0, clockAmPmMenu, clockHourMenu, F("Clock Min: [<] Back"), F(""), LCDMenu::RangeType::Minute, AccessoryType::Clock);
+	AddMenu(clockAmPmMenu, 0, clockMenu, clockMinMenu, F("Clock AM-PM: [<] Back"), F(""), LCDMenu::RangeType::AmPm, AccessoryType::Clock);
 
+	SerialExt::DebugFreeMemory(F("cm5"));
+	
 }
 String LCDMenuController::GetRangeOption(LCDMenu::RangeType rangeType, AccessoryType accType)
 {
@@ -73,31 +91,32 @@ String LCDMenuController::GetRangeOption(LCDMenu::RangeType rangeType, Accessory
 	{
 		LimitRange(0, 1);
 		if (_optionCount <= _lowerLimit)
-			return "Daily";
+			return F("Daily");
 		else if (_optionCount >= _upperLimit)
-			return "Every Other Day";
+			return F("Every Other Day");
 
 	}
 	else if (rangeType == LCDMenu::RangeType::Hour)
 	{
 		LimitRange(1, 12);
 		String hour = GetOptionAsNumber("01", true);
+		SerialExt::Debug("feed hour", hour);
 		return hour;
 	}
 	else if (rangeType == LCDMenu::RangeType::Minute)
 	{
 		LimitRange(0, 59);
 
-		String minute = GetOptionAsNumber("01", true);
+		String minute = GetOptionAsNumber(F("01"), true);
 		return minute;
 	}
 	else if (rangeType == LCDMenu::RangeType::AmPm)
 	{
 		LimitRange(0, 1);
 		if (_optionCount <= _lowerLimit)
-			return "AM";
+			return F("AM");
 		else if (_optionCount >= _upperLimit)
-			return "PM";
+			return F("PM");
 	}
 	else if (rangeType == LCDMenu::RangeType::TimeFrequency)
 	{
@@ -114,20 +133,20 @@ String LCDMenuController::GetRangeOption(LCDMenu::RangeType rangeType, Accessory
 	else if (rangeType == LCDMenu::RangeType::Year)
 	{
 		LimitRange(2016, 2050);
-		String txt = GetOptionAsNumber("2016");
+		String txt = GetOptionAsNumber(F("2016"));
 
 		return txt;
 	}
 	else if (rangeType == LCDMenu::RangeType::Month)
 	{
 		LimitRange(1, 12);
-		String txt = GetOptionAsNumber("01", true);
+		String txt = GetOptionAsNumber(F("01"), true);
 		return txt;
 	}
 	else if (rangeType == LCDMenu::RangeType::Day)
 	{
 		LimitRange(1, 31);
-		String txt = GetOptionAsNumber("01", true);
+		String txt = GetOptionAsNumber(F("01"), true);
 		return txt;
 	}
 	else if (rangeType == LCDMenu::RangeType::ShakesOrTurns)
@@ -139,7 +158,7 @@ String LCDMenuController::GetRangeOption(LCDMenu::RangeType rangeType, Accessory
 	{
 		LimitRange(0, 13);
 
-		String txt = GetOptionAsNumber("0");
+		String txt = GetOptionAsNumber(F("0"));
 		return txt;
 	}
 	//else if (rangeType == LCDMenu::RangeType::OutPin)
@@ -244,6 +263,7 @@ String LCDMenuController::GetOptionAsNumber(String defaultNumber, bool isTwoDigi
 		if (_optionCount < 10 && isTwoDigits)
 			txt = "0" + txt;
 	}
+	return txt;
 }
 
 //get by ref example
@@ -314,7 +334,25 @@ void LCDMenuController::PrintMenu(LCDMenu menu)
 //{
 //	_lcd.clear();
 //}
+void LCDMenuController::SetClockMenu(){
+	//SelectMainMenu();
 
+	_selectedMenuId = clockYearMenu;
+	_selectedOptionId = 0;
+	_optionCount = 0;
+	
+	auto setClockMenu = GetSelectedMenu();
+	SerialExt::Debug("_selectedMenuId", _selectedMenuId);
+
+	PrintMenu(setClockMenu);
+	delay(_selectDelay);
+
+	while (_selectedMenuId > -1)
+	{
+		DetectKeyPress();
+		delay(200);
+	}
+}
 void LCDMenuController::SelectMainMenu()
 {
 	
@@ -323,6 +361,8 @@ void LCDMenuController::SelectMainMenu()
 
 	auto menu = GetSelectedMenu();
 	PrintMenu(menu);
+
+	delay(_selectDelay);
 
 	while (_selectedMenuId > -1)
 	{
@@ -413,6 +453,7 @@ void LCDMenuController::SelectButton()
 	auto nextMenu = GetMenu(selectedMenu.NextMenuId, 0);
 	SetSelectedMenu(nextMenu);
 	PrintMenu(nextMenu);
+	delay(_selectDelay);
 
 }
 
@@ -420,7 +461,7 @@ void LCDMenuController::SelectButton()
 void LCDMenuController::DetectKeyPress()
 {
 	int key = GetKey();
-	//SerialExt::Debug("key:", key);
+	//SerialExt::Debug("key_dkp:", key);
 
 	switch (key) {
 	case 0: //right
@@ -436,7 +477,7 @@ void LCDMenuController::DetectKeyPress()
 		LeftButton();
 		break;
 	case 4: //select
-		SelectButton();
+		SelectButton();	
 		break;
 	default:
 		break;
@@ -453,7 +494,7 @@ void LCDMenuController::PrintTime()
 
 	//SerialExt::Debug("dtStringp", dateTimeString);
 
-	PrintLine(0, "Clock:");
+	PrintLine(0, F("Clock:"));
 	PrintLine(1, dateTimeString);
 
 	delay(_scrollDelay);
@@ -465,9 +506,9 @@ void LCDMenuController::PrintRunInfo(AccessoryType accType)
 	NextRunMemory& nextRunMem = RTCExt::FindNextRunInfo(accType);
 
 	if (accType == AccessoryType::Feeder)
-		label = "Feed";
+		label = F("Feed");
 	else if (accType == AccessoryType::DryDoser)
-		label = "Dose";
+		label = F("Dose");
 	
 	if (nextRunMem.RunEvery == 0LL){
 		PrintLine(0, label + " Not Set");
@@ -530,8 +571,8 @@ void LCDMenuController::Scroll()
 }
 void LCDMenuController::PrintInstructions()
 {
-	PrintLine(0, "Hold [Select]");
-	PrintLine(1, "for Menu");
+	PrintLine(0, F("Hold [Select]"));
+	PrintLine(1, F("for Menu"));
 	delay(_scrollDelay);
 }
 String LCDMenuController::GetTimeLong(AccessoryType accType)
@@ -559,7 +600,7 @@ String LCDMenuController::GetTimeFrequency(AccessoryType accType)
 	nextRun = nextRunMem.NextRun;
 
 	if (runEvery <= 0)
-		return "Not Set";
+		return F("Not Set");
 
 	String freqTime = RTCExt::GetTimeFrequencyString(runEvery, nextRun);
 	return freqTime;
@@ -583,9 +624,9 @@ int LCDMenuController::GetKeyFromVal(unsigned int input) {
 int LCDMenuController::GetKey()
 {
 	int keyVal = analogRead(0);
-	SerialExt::Debug("keyVal", keyVal);
+	//SerialExt::Debug(F("keyVal"), keyVal);
 	int key = GetKeyFromVal(keyVal);
-	SerialExt::Debug("key", key);
-
+	//SerialExt::Debug(F("key"), key);
+	//_lastKey = key;
 	return key;
 }

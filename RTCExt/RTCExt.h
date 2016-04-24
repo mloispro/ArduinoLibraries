@@ -48,7 +48,7 @@ namespace Utils {
 		static NextRunMemory NextDoseInfo EEMEM;
 
 		static tmElements_t _timeBuffer;
-		static tmElements_t _nextRunBuffer;
+		//static tmElements_t _nextRunBuffer;
 
 		template<typename H = int, typename M = int, typename S = int>
 		String FormatDigialTime(H&& hours, M&& minutes, S&& seconds)
@@ -142,9 +142,9 @@ namespace Utils {
 
 			result = theDate + " " + theTime;
 
-			String am = "AM";
+			String am = F("AM");
 			if (isPM(seconds))
-				am = "PM";
+				am = F("PM");
 
 			result += am;
 
@@ -156,23 +156,8 @@ namespace Utils {
 		template<typename T = void>
 		time_t GetRTCTime()
 		{
-			return now(); //RTC.get();
+			return now();
 		}
-		template<typename T = void>
-		void Init(){
-
-			//if (_initalized) return;
-
-			setSyncProvider(RTC.get);   // the function to get the time from the RTC
-			if (timeStatus() != timeSet)
-				SerialExt::Print("Unable to sync with the RTC");
-			else{
-				String digitalTime = GetDigitalTimeString(GetRTCTime());
-				SerialExt::Print("RTC Initialized: ", digitalTime);
-				//_initalized = true;
-			}
-		}
-		
 		template<typename T = void>
 		void SetRTCTime(int theHour, int theMinute, int theSecond, int theDay, int theMonth, int theYear)
 		{
@@ -180,8 +165,34 @@ namespace Utils {
 			//setTime(8, 22, 00, 28, 2, 2016);
 			setTime(theHour, theMinute, theSecond, theDay, theMonth, theYear);
 			RTC.set(now());
+			//tmElements_t tm;
+			//tm.Hour = theHour;
+			//tm.Minute = theMinute;
+			//tm.Day = theDay;
+			//tm.Month = theMonth;
+			//tm.Year = theYear;
+			//time_t t = makeTime(tm);
+			//RTC.set(t);
 		}
+		/*template<typename T = void>
+		void SetDefaultRTCTime()
+		{
+			SetRTCTime(1, 1, 1, 1, 1, 2000);
+		}
+		template<typename T = void>
+		bool IsDefaultRTCTime()
+		{
+			time_t rtcTime = GetRTCTime();
+			int y = year(rtcTime);
+			int m = month(rtcTime);
+			int d = day(rtcTime);
+			int h = hour(rtcTime);
+			if (y == 2000 && m == 1 && d == 1 && h == 1)
+				return true;
 
+			return false;
+
+		}*/
 		template<typename T = void>
 		bool IsRTCTimeSet()
 		{
@@ -190,7 +201,26 @@ namespace Utils {
 			if (theYear < 2016)return false;
 			return true;
 		}
+		template<typename T = void>
+		void Init(){
 
+			//if (_initalized) return;
+
+			//defaut rtc time if not set
+			//SerialExt::Debug(F("IsRTCTimeSet"), IsRTCTimeSet());
+			//if (!IsRTCTimeSet())
+			//	SetDefaultRTCTime();
+
+			setSyncProvider(RTC.get);   // the function to get the time from the RTC
+			if (timeStatus() != timeSet)
+				SerialExt::Print(F("Unable to sync with the RTC, time not set."));
+			else{
+				String digitalTime = GetDigitalTimeString(GetRTCTime());
+				SerialExt::Print(F("RTC Initialized: "), digitalTime);
+				//_initalized = true;
+			}
+		}
+		
 		template<typename T = AccessoryType>
 		NextRunMemory& FindNextRunInfo(T&& accType){
 			if (accType == AccessoryType::Feeder)
@@ -286,9 +316,9 @@ namespace Utils {
 		{
 			String freq = "";
 
-			String am = "AM";
+			String am = F("AM");
 			if (isPM(nextRun))
-				am = "PM";
+				am = F("PM");
 
 			String theTime = GetDigitalTimeString(nextRun);
 			theTime = theTime + am;
@@ -296,9 +326,9 @@ namespace Utils {
 			int h = ConvSecToHour(runEvery);
 
 			if (h == 24)
-				freq = ", Daily";
+				freq = F(", Daily");
 			else if (h = 48)
-				freq = ", Every Other Day";
+				freq = F(", Every Other Day");
 
 			String freqTime = theTime + freq;
 			return freqTime;
@@ -322,13 +352,27 @@ namespace Utils {
 			SetRTCTime(_timeBuffer.Hour, _timeBuffer.Minute, _timeBuffer.Second, _timeBuffer.Day, _timeBuffer.Month, _timeBuffer.Year);
 		}
 
+		template<typename T = void>
+		void ClearTimeTemp()
+		{
+			_timeBuffer.Hour = 0;
+			_timeBuffer.Minute = 0;
+			_timeBuffer.Second = 0;
+			_timeBuffer.Day = 0;
+			_timeBuffer.Month = 0;
+			_timeBuffer.Year = 0;
+			_timeBuffer.Wday = 0;
+		}
+
 		template<typename T, typename M = LCDMenu::RangeType>
 		void SetTimeTemp(T&& val, M&& rangeType)
 		{
 			T t(val);
 
-			if (rangeType == LCDMenu::RangeType::Year)
+			if (rangeType == LCDMenu::RangeType::Year){
+				ClearTimeTemp();
 				_timeBuffer.Year = val;
+			}
 			else if (rangeType == LCDMenu::RangeType::Month)
 				_timeBuffer.Month = val;
 			else if (rangeType == LCDMenu::RangeType::Day)
@@ -364,25 +408,57 @@ namespace Utils {
 			
 			//localtime_s(&timePtr, &nrTime);
 			
-			if (rangeType == LCDMenu::RangeType::Minute)
-				_nextRunBuffer.Minute = val;
-			else if (rangeType == LCDMenu::RangeType::Hour)
-				_nextRunBuffer.Hour = val;
+			SerialExt::Debug("nextRunBuffer_min1", _timeBuffer.Minute);
+			SerialExt::Debug("nextRunBuffer_hour1", _timeBuffer.Hour);
+
+			if (rangeType == LCDMenu::RangeType::Hour){
+				ClearTimeTemp();
+				_timeBuffer.Hour = val;
+			}
+			else if (rangeType == LCDMenu::RangeType::Minute)
+				_timeBuffer.Minute = val;
 			else if (rangeType == LCDMenu::RangeType::AmPm)
 			{
-				if (val == 0 && _nextRunBuffer.Hour > 12) //AM
-					_nextRunBuffer.Hour = _nextRunBuffer.Hour - 12;
-				else if (val == 1 && _nextRunBuffer.Hour < 12)//PM
-					_nextRunBuffer.Hour = _nextRunBuffer.Hour + 12;
+				//if (val == 0 && _nextRunBuffer.Hour > 12) //AM
+				//	_nextRunBuffer.Hour = _nextRunBuffer.Hour - 12;
+				//else if (val == 1 && _nextRunBuffer.Hour < 12)//PM
+				//	_nextRunBuffer.Hour = _nextRunBuffer.Hour + 12;
+				
+				NextRunMemory& nextRunMem = FindNextRunInfo(accType);
+
+				//next run in seconds.
+				int reSecs = nextRunMem.RunEvery;
+				//int nrHours = ConvSecToHour(nrSecs);
+				
+
+				SerialExt::Debug("reSecs", reSecs);
+
+				if (val == 1)//pm
+					_timeBuffer.Hour = _timeBuffer.Hour + 12;
+
+				time_t rtcTime = GetRTCTime();
+
+				SerialExt::Debug("rtcTime", GetShortDateTimeString(rtcTime));
+
+				
+
+				int y = year(rtcTime);
+				_timeBuffer.Year = CalendarYrToTm(y);
+				_timeBuffer.Month = month(rtcTime);
+				_timeBuffer.Day = day(rtcTime);
+				_timeBuffer.Second = second(rtcTime);
 
 				//meridian is last step so update time
-				auto newNrTime = makeTime(_nextRunBuffer);
+				time_t newNrTime = makeTime(_timeBuffer);
+
+				SerialExt::Debug("nextRunBuffer_min2", _timeBuffer.Minute);
+				SerialExt::Debug("nextRunBuffer_hour2", _timeBuffer.Hour);
 
 				//todo: remove
 				String nrTimes = GetShortDateTimeString(newNrTime);
 				SerialExt::Debug("nrTimes", nrTimes);
 
-				NextRunMemory& nextRunMem = FindNextRunInfo(accType);
+				
 				nextRunMem.NextRun = newNrTime;
 
 				UpdateNextRun(accType);

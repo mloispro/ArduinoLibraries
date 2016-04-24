@@ -27,7 +27,6 @@ namespace Controllers {
 
 	class LCDMenuController{
 	private:
-		//using namespace Utils;
 		const short mainMenu = 0;
 		const short feedMenu = 1;
 		const short feedFreqMenu = 2;
@@ -53,8 +52,10 @@ namespace Controllers {
 		const short doserShakesMenu = 22;
 		const short doserSetShakesMenu = 23;
 
-		int _scrollIndex;
+		short _scrollIndex;
 		int _scrollDelay = 3000;
+
+		int _selectDelay = 2000;
 
 		vector<LCDMenu> _menus;
 		//String _selectedText;
@@ -65,8 +66,8 @@ namespace Controllers {
 		int _upperLimit;
 
 		//--key press
-		int _keyValues[5];
-		int _numOfKeys = 5;
+		int _keyValues[5] = { 50, 200, 400, 600, 800 };
+		short _numOfKeys = 5;
 		int GetKeyFromVal(unsigned int input);
 		void NextOption();
 		void PreviousOption();
@@ -84,20 +85,24 @@ namespace Controllers {
 		void AddMenu(short id, short optionId, short nextMenuId, short prevMenuId, String text, String optionText, LCDMenu::RangeType rangeType, AccessoryType accType);
 		void CreateMenus();
 		LCDMenu GetSelectedMenu();
+		void SetClockMenu();
 
 		String GetOptionAsNumber(String defaultNumber, bool isTwoDigits);
 		String GetOptionAsNumber(String defaultNumber);
 
 		void PrintInstructions();
 
-		static LiquidCrystal _lcd;
+		LiquidCrystal _lcd;
 		//LiquidCrystal* _lcd = new LiquidCrystal(8, 9, 4, 5, 6, 7);
 	
 
 	public:
 		int _optionCount;
 
-		LCDMenuController();
+		LCDMenuController() :_lcd(8, 9, 4, 5, 6, 7){}
+		//LCDMenuController();
+
+		void Init();
 
 		String GetRangeOption(LCDMenu::RangeType rangeType, AccessoryType accType);
 		void SaveRangeOption(LCDMenu::RangeType rangeType, AccessoryType accType);

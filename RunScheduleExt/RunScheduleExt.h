@@ -17,7 +17,7 @@ using namespace std;
 #include <EEPROM.h>
 #include <EEWrap.h>
 
-#include "TimerExt.h"
+//#include "RTCExt.h"
 #include "SerialExt.h"
 
 namespace Utils {

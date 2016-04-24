@@ -9,6 +9,8 @@
 	#include "WProgram.h"
 #endif
 
+#include <MemoryFree.h>
+
 namespace Utils {
 
 	enum AccessoryType
@@ -91,7 +93,7 @@ namespace Utils {
 				//SerialExt::Print("Incomming Text: ", incomingbyte);
 			}
 			if (num > 0){
-				SerialExt::Print("Incomming number: ", num);
+				SerialExt::Print(F("Incomming number: "), num);
 				return num;
 			}
 			return 0;
@@ -117,6 +119,31 @@ namespace Utils {
 			Serial.println(val);
 			Serial.flush();
 		}
+		template<typename T>
+		void DebugFreeMemory(T&& text)
+		{
+			T t(text);
+
+			String msg = String(" - ") + text;
+			int mem = freeMemory();
+			Debug(F("Free Mem"), mem);
+			Serial.println(msg);
+			
+		}
+		template<typename T>
+		void DebugFreeMemHeap(T&& text)
+		{
+			T t(text);
+
+			String msg = String(" - ") + text;
+			int mem = freeMemory();
+			Debug(F("Free Mem"), mem);
+			Serial.println(msg);
+
+		}
+		
+	}
+	namespace MemoryExt{
 		
 	}
 }
