@@ -15,7 +15,7 @@
 using namespace std;
 
 #include <EEPROM.h>
-#include <EEWrap.h>
+
 
 //#include "RTCExt.h"
 #include "SerialExt.h"
@@ -23,21 +23,21 @@ using namespace std;
 namespace Utils {
 
 	struct RunSchedule{
-		uint16_e Pin;
-		uint32_e NextRunCountDown;
-		uint32_e LastRunInSeconds;
+		short Pin;
+		long NextRunCountDown;
+		long LastRunInSeconds;
 		//uint32_e NextRunInSeconds;
 		//uint32_e RuntimeInSeconds;
 	};
 		////remeber: dependant functions must be defined first in namespace.
 		///**Better to use template functions.
 	namespace RunScheduleExt {
-		static RunSchedule TheRunSchedule EEMEM;
-		static RunSchedule TheRunSchedule2 EEMEM;
-		static RunSchedule TheRunSchedule3 EEMEM;
-		static RunSchedule TheRunSchedule4 EEMEM;
-		static RunSchedule TheRunSchedule5 EEMEM;
-		static RunSchedule TheRunSchedule6 EEMEM;
+		static RunSchedule TheRunSchedule;
+		static RunSchedule TheRunSchedule2;
+		static RunSchedule TheRunSchedule3;
+		static RunSchedule TheRunSchedule4;
+		static RunSchedule TheRunSchedule5;
+		static RunSchedule TheRunSchedule6;
 
 		static vector<RunSchedule> RunSchedules;
 

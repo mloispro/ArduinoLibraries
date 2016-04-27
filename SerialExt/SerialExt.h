@@ -9,11 +9,11 @@
 	#include "WProgram.h"
 #endif
 
-#include <MemoryFree.h>
+
 
 namespace Utils {
 
-	enum AccessoryType
+	enum AccessoryType : int
 	{
 		None,
 		Clock,
@@ -24,6 +24,8 @@ namespace Utils {
 		Lcd
 	};
 
+	////remeber: dependant functions must be defined first in namespace.
+	///**Better to use template functions.
 	namespace SerialExt{
 
 		//T& will only take references, T&& will take ref, pointer, or val, so always do this.
@@ -119,34 +121,11 @@ namespace Utils {
 			Serial.println(val);
 			Serial.flush();
 		}
-		template<typename T>
-		void DebugFreeMemory(T&& text)
-		{
-			T t(text);
 
-			String msg = String(" - ") + text;
-			int mem = freeMemory();
-			Debug(F("Free Mem"), mem);
-			Serial.println(msg);
-			
-		}
-		template<typename T>
-		void DebugFreeMemHeap(T&& text)
-		{
-			T t(text);
-
-			String msg = String(" - ") + text;
-			int mem = freeMemory();
-			Debug(F("Free Mem"), mem);
-			Serial.println(msg);
-
-		}
 		
-	}
-	namespace MemoryExt{
 		
-	}
-}
+	};
+};
 
 
 #endif

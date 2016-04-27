@@ -81,7 +81,7 @@ void LCDMenuController::CreateMenus()
 	AddMenu(clockMinMenu, 0, clockAmPmMenu, clockHourMenu, F("Clock Min: [<] Back"), F(""), LCDMenu::RangeType::Minute, AccessoryType::Clock);
 	AddMenu(clockAmPmMenu, 0, clockMenu, clockMinMenu, F("Clock AM-PM: [<] Back"), F(""), LCDMenu::RangeType::AmPm, AccessoryType::Clock);
 
-	SerialExt::DebugFreeMemory(F("cm5"));
+	//MemoryExt::PrintFreeMemory(F("cm5"));
 	
 }
 String LCDMenuController::GetRangeOption(LCDMenu::RangeType rangeType, AccessoryType accType)
@@ -100,7 +100,7 @@ String LCDMenuController::GetRangeOption(LCDMenu::RangeType rangeType, Accessory
 	{
 		LimitRange(1, 12);
 		String hour = GetOptionAsNumber("01", true);
-		SerialExt::Debug("feed hour", hour);
+		//SerialExt::Debug("feed hour", hour);
 		return hour;
 	}
 	else if (rangeType == LCDMenu::RangeType::Minute)
@@ -291,11 +291,13 @@ void LCDMenuController::SetSelectedMenu(LCDMenu menu)
 
 }
 void LCDMenuController::SetShakesOrTurns(AccessoryType accType, short shakesOrTurns){
-	NextRunMemory& mem = RTCExt::FindNextRunInfo(accType);
+	
+	NextRunMemory mem = RTCExt::FindNextRunInfo(accType);
 	mem.ShakesOrTurns = shakesOrTurns;
 }
 int LCDMenuController::GetShakesOrTurns(AccessoryType accType){
-	NextRunMemory& mem = RTCExt::FindNextRunInfo(accType);
+
+	NextRunMemory mem = RTCExt::FindNextRunInfo(accType);
 	int shakes = mem.ShakesOrTurns;
 	return shakes;
 }
@@ -342,7 +344,7 @@ void LCDMenuController::SetClockMenu(){
 	_optionCount = 0;
 	
 	auto setClockMenu = GetSelectedMenu();
-	SerialExt::Debug("_selectedMenuId", _selectedMenuId);
+	//SerialExt::Debug("_selectedMenuId", _selectedMenuId);
 
 	PrintMenu(setClockMenu);
 	delay(_selectDelay);
@@ -490,7 +492,7 @@ void LCDMenuController::PrintTime()
 	auto time = RTCExt::GetRTCTime();
 	//auto theMonth = month(time);
 
-	auto dateTimeString = RTCExt::GetShortDateTimeString(time);
+	auto dateTimeString = Time::GetShortDateTimeString(time);
 
 	//SerialExt::Debug("dtStringp", dateTimeString);
 
@@ -503,7 +505,8 @@ void LCDMenuController::PrintTime()
 void LCDMenuController::PrintRunInfo(AccessoryType accType)
 {
 	String label;
-	NextRunMemory& nextRunMem = RTCExt::FindNextRunInfo(accType);
+
+	NextRunMemory nextRunMem = RTCExt::FindNextRunInfo(accType);
 
 	if (accType == AccessoryType::Feeder)
 		label = F("Feed");
@@ -524,9 +527,9 @@ void LCDMenuController::PrintRunInfo(AccessoryType accType)
 		String lastRun;
 		String countDown;
 
-		lastRun = RTCExt::GetShortDateTimeString(nextRunMem.LastRun);
-		countDown = RTCExt::GetTimeRemainingString(nextRunMem.CountDown);
-		nextRun = RTCExt::GetShortDateTimeString(nextRunMem.NextRun);
+		lastRun = Time::GetShortDateTimeString(nextRunMem.LastRun);
+		countDown = Time::GetTimeRemainingString(nextRunMem.CountDown);
+		nextRun = Time::GetShortDateTimeString(nextRunMem.NextRun);
 
 		switch (i) {
 		case 0:
@@ -584,7 +587,7 @@ String LCDMenuController::GetTimeLong(AccessoryType accType)
 		time = RTCExt::GetRTCTime();
 	}
 
-	String timeString = RTCExt::GetShortDateTimeString(time);
+	String timeString = Time::GetShortDateTimeString(time);
 	return timeString;
 
 }
@@ -594,7 +597,7 @@ String LCDMenuController::GetTimeFrequency(AccessoryType accType)
 	long runEvery;
 	long nextRun;
 
-	NextRunMemory& nextRunMem = RTCExt::FindNextRunInfo(accType);
+	NextRunMemory nextRunMem = RTCExt::FindNextRunInfo(accType);
 
 	runEvery = nextRunMem.RunEvery;
 	nextRun = nextRunMem.NextRun;

@@ -15,7 +15,7 @@
 using namespace std;
 
 #include <EEPROM.h>
-#include <EEWrap.h>
+
 
 //#include "TimerExt.h"
 #include "SerialExt.h"
@@ -23,18 +23,18 @@ using namespace std;
 namespace Utils {
 
 	struct PinValMemory{
-		int64_e Value;
-		int64_e Value2;
+		long Value;
+		long Value2;
 	};
 		////remeber: dependant functions must be defined first in namespace.
 		///**Better to use template functions.
 	namespace PinValMemoryExt {
-		static PinValMemory ThePinValMemory9 EEMEM;
-		static PinValMemory ThePinValMemory8 EEMEM;
-		static PinValMemory ThePinValMemory7 EEMEM;
-		static PinValMemory ThePinValMemory6 EEMEM;
-		static PinValMemory ThePinValMemory5 EEMEM;
-		static PinValMemory ThePinValMemory4 EEMEM;
+		static PinValMemory ThePinValMemory9;
+		static PinValMemory ThePinValMemory8;
+		static PinValMemory ThePinValMemory7;
+		static PinValMemory ThePinValMemory6;
+		static PinValMemory ThePinValMemory5;
+		static PinValMemory ThePinValMemory4;
 
 		/*static vector<PinValMemory> PinValMemoryCollection;
 

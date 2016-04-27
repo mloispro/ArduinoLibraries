@@ -13,10 +13,15 @@
 #include <vector>
 using namespace std;
 
+#include <Wire.h>
+#include <TimeLib.h>
+#include <Time.h>
+#include <DS3232RTC.h>
 #include <LiquidCrystal.h>
 
 #include "SerialExt.h"
 #include <LCDMenu.h>
+#include "DigitalTime.h"
 #include "RTCExt.h"
 using namespace Utils;
 
@@ -27,30 +32,30 @@ namespace Controllers {
 
 	class LCDMenuController{
 	private:
-		const short mainMenu = 0;
-		const short feedMenu = 1;
-		const short feedFreqMenu = 2;
-		const short feedHourMenu = 3;
-		const short feedMinMenu = 4;
-		const short feedAmPmMenu = 5;
-		const short clockMenu = 6;
-		const short clockYearMenu = 7;
-		const short clockMonthMenu = 8;
-		const short clockDayMenu = 9;
-		const short feedTimeMenu = 10;
-		const short clockHourMenu = 11;
-		const short clockMinMenu = 12;
-		const short clockAmPmMenu = 13;
-		const short doserMenu = 14;
-		const short doserFreqMenu = 15;
-		const short doserHourMenu = 16;
-		const short doserMinMenu = 17;
-		const short doserAmPmMenu = 18;
-		const short doserTimeMenu = 19;
-		const short feedShakesMenu = 20;
-		const short feedSetShakesMenu = 21;
-		const short doserShakesMenu = 22;
-		const short doserSetShakesMenu = 23;
+		static const short mainMenu = 0;
+		static const short feedMenu = 1;
+		static const short feedFreqMenu = 2;
+		static const short feedHourMenu = 3;
+		static const short feedMinMenu = 4;
+		static const short feedAmPmMenu = 5;
+		static const short clockMenu = 6;
+		static const short clockYearMenu = 7;
+		static const short clockMonthMenu = 8;
+		static const short clockDayMenu = 9;
+		static const short feedTimeMenu = 10;
+		static const short clockHourMenu = 11;
+		static const short clockMinMenu = 12;
+		static const short clockAmPmMenu = 13;
+		static const short doserMenu = 14;
+		static const short doserFreqMenu = 15;
+		static const short doserHourMenu = 16;
+		static const short doserMinMenu = 17;
+		static const short doserAmPmMenu = 18;
+		static const short doserTimeMenu = 19;
+		static const short feedShakesMenu = 20;
+		static const short feedSetShakesMenu = 21;
+		static const short doserShakesMenu = 22;
+		static const short doserSetShakesMenu = 23;
 
 		short _scrollIndex;
 		int _scrollDelay = 3000;
@@ -95,11 +100,10 @@ namespace Controllers {
 		LiquidCrystal _lcd;
 		//LiquidCrystal* _lcd = new LiquidCrystal(8, 9, 4, 5, 6, 7);
 	
-
 	public:
 		int _optionCount;
 
-		LCDMenuController() :_lcd(8, 9, 4, 5, 6, 7){}
+		LCDMenuController() :_lcd(8, 9, 4, 5, 6, 7){ Init(); }
 		//LCDMenuController();
 
 		void Init();

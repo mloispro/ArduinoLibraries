@@ -30,14 +30,16 @@ TheServo(servo), _pin(pin), Shakes(shakes), _pos(pos), _theSpeed(theSpeed), Rela
 ServoMotor::ServoMotor(){};
 
 int ServoMotor::SetShakes(int shakes){
-	NextRunMemory& mem = RTCExt::FindNextRunInfo(ServoType);
+	
+	NextRunMemory mem = RTCExt::FindNextRunInfo(ServoType);
 
 	mem.ShakesOrTurns = shakes;
 	Shakes = shakes;
 	//SerialExt::Debug("Shakes: ", Shakes);
 }
 int ServoMotor::GetShakes(){
-	NextRunMemory& mem = RTCExt::FindNextRunInfo(ServoType);
+	
+	NextRunMemory mem = RTCExt::FindNextRunInfo(ServoType);
 	
 	int shakes = mem.ShakesOrTurns;
 	//SerialExt::Debug("get shakes: ", shakes);
@@ -54,7 +56,7 @@ void ServoMotor::Init(){
 	if (RelayPin >= 2 && RelayPin <= 13)
 		pinMode(RelayPin, OUTPUT);
 	
-	NextRunMemory& mem = RTCExt::FindNextRunInfo(ServoType);
+	NextRunMemory mem = RTCExt::FindNextRunInfo(ServoType);
 
 	SerialExt::Debug(F("mem.RunEvery"), (long)mem.RunEvery);
 	SerialExt::Debug(F("RunEverySeconds"), RunEverySeconds);
@@ -105,7 +107,7 @@ void ServoMotor::Run(){
 	if (signalRelay)
 		digitalWrite(RelayPin, LOW);
 
-	NextRunMemory& mem = RTCExt::FindNextRunInfo(ServoType);
+	NextRunMemory mem = RTCExt::FindNextRunInfo(ServoType);
 
 	if (RunEverySeconds > 0)
 		mem.LastRun = RTCExt::GetRTCTime(); //using rtc

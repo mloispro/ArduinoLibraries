@@ -23,6 +23,7 @@ using namespace std;
 #include "AnalogSwitch.h"
 using namespace Utils;
 
+
 class ServoMotor {
 private:
 	int _pin;
@@ -33,7 +34,6 @@ private:
 	int GetNextRunInSeconds();
 	bool IsSwitchOn(bool isTimeToRun);
 	void RunServo();
-
 protected:
 	int _theSpeed;
 	AccessoryType ServoType;
