@@ -95,16 +95,22 @@ namespace Utils {
 			if (theYear < 2016)return false;
 			return true;
 		}
+		template<typename T=void>
+		void LoadNextRunInfos(){
+			int accTypeFeed = static_cast<int>(AccessoryType::Feeder);
+			int accTypeDoser = static_cast<int>(AccessoryType::DryDoser);
+
+			NextFeedInfo.AccType = accTypeFeed;
+			NextFeedInfo = MemoryExt::GetNextRunMem(NextFeedInfo);
+
+			NextDoseInfo.AccType = accTypeDoser;
+			NextDoseInfo = MemoryExt::GetNextRunMem(NextDoseInfo);
+
+		}
 		template<typename T = void>
 		void Init(){
-			/*NextRunMemory mem;
-			NextFeedInfo = mem;*/
-			//if (_initalized) return;
-
-			//defaut rtc time if not set
-			//SerialExt::Debug(F("IsRTCTimeSet"), IsRTCTimeSet());
-			//if (!IsRTCTimeSet())
-			//	SetDefaultRTCTime();
+			
+			LoadNextRunInfos();
 
 			setSyncProvider(RTC.get);   // the function to get the time from the RTC
 			if (timeStatus() != timeSet)
@@ -115,45 +121,38 @@ namespace Utils {
 				//_initalized = true;
 			}
 		}
-		template<typename T>
-		T& SaveNextRunMem(T&& mem){
-			T t(mem);
-
-			T& savedMem = MemoryExt::SaveNextRunMem(mem);
-			return savedMem;
-		}
-		template<typename T>
-		T& GetNextRunMem(T&& mem){
-			T t(mem);
-
-			T& savedMem = MemoryExt::GetNextRunMem(mem);
-			return savedMem;
-		}
-
 		template<typename T = AccessoryType>
-		NextRunMemory FindNextRunInfo(T&& accType){
+		NextRunMemory& FindNextRunInfo(T&& accType){
 			if (accType == AccessoryType::Feeder)
 				return NextFeedInfo;
 			else if (accType == AccessoryType::DryDoser)
 				return NextDoseInfo;
 		}
+		template<typename T = AccessoryType>
+		void SaveNextRunInfo(T&& accType){
+			int accTypeInt = static_cast<int>(accType);
+			NextRunMemory& mem = FindNextRunInfo(accType);
+			
+			mem.AccType = accTypeInt;
+			mem = MemoryExt::SaveNextRunMem(mem);
+			
+		}
+		
+
+		
 
 		template<typename T = AccessoryType>
 		void UpdateNextRun(T&& accType){
 
 			auto rtcTime = GetRTCTime();
-			NextRunMemory nextRunMem = FindNextRunInfo(accType);
+			NextRunMemory& nextRunMem = FindNextRunInfo(accType);
 
-			long runEvery = 0;
-			long countDown = 0;
-			long nextRun = 0;
-			long lastRun = 0;
+			long runEvery = nextRunMem.RunEvery;
+			long countDown = nextRunMem.CountDown;
+			long nextRun = nextRunMem.NextRun;
+			long lastRun = nextRunMem.LastRun;
 
-			runEvery = nextRunMem.RunEvery;
-			countDown = nextRunMem.CountDown;
-			nextRun = nextRunMem.NextRun;
-			lastRun = nextRunMem.LastRun;
-
+			//TODO comment out
 			auto rtc1 = GetShortDateTimeString(rtcTime);
 			auto nr1 = GetShortDateTimeString(nextRun);
 			auto cd1 = GetTimeRemainingString(countDown);
@@ -189,6 +188,7 @@ namespace Utils {
 				countDown = 0;
 			}
 
+			//todo comment out
 			auto nr2 = GetShortDateTimeString(nextRun);
 			auto cd2 = GetTimeRemainingString(countDown);
 			auto re2 = GetTimeRemainingString(runEvery);
@@ -202,12 +202,20 @@ namespace Utils {
 			nextRunMem.NextRun = nextRun;
 			nextRunMem.LastRun = lastRun;
 
+			//todo change to 900
+			//save every 15 min. 900
+			long saveTime = nextRunMem.LastSave + 60;
+			if (saveTime <= rtcTime){
+				SerialExt::Debug("time to save nr", GetDigitalTimeString(rtcTime));
+				SaveNextRunInfo(accType);
+			}
+
 		}
 
 		template<typename T = void>
 		bool IsTimeToRun(AccessoryType accType){
 
-			NextRunMemory nextRunMem = FindNextRunInfo(accType);
+			NextRunMemory& nextRunMem = FindNextRunInfo(accType);
 
 			if (nextRunMem.RunEvery <= 0)return true; //not using rtc
 
@@ -249,7 +257,7 @@ namespace Utils {
 		{
 			T t(hour);
 			long sec = ConvHoursToSec(hour);
-			NextRunMemory nextRunMem = FindNextRunInfo(accType);
+			NextRunMemory& nextRunMem = FindNextRunInfo(accType);
 
 			SerialExt::Debug("sec", sec);
 
@@ -327,7 +335,7 @@ namespace Utils {
 			else if (rangeType == LCDMenu::RangeType::AmPm)
 			{
 				
-				NextRunMemory nextRunMem = FindNextRunInfo(accType);
+				NextRunMemory& nextRunMem = FindNextRunInfo(accType);
 
 				//next run in seconds.
 				long nrSecs = nextRunMem.NextRun;
@@ -359,7 +367,7 @@ namespace Utils {
 		template<typename P = AccessoryType>
 		void SetLastRun(P&& accType)
 		{
-			NextRunMemory nextRunMem = FindNextRunInfo(accType);
+			NextRunMemory& nextRunMem = FindNextRunInfo(accType);
 			nextRunMem.LastRun = GetRTCTime();
 			UpdateNextRun(accType);
 		}

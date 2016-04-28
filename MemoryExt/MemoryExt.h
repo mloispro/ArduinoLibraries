@@ -30,13 +30,13 @@ using namespace Utils;
 namespace Models{
 
 	struct NextRunMemory{
-		int AccType; //id
-		long LastRun;
-		long NextRun;
-		long CountDown;
+		int AccType = 0; //id
+		long LastRun = 0;
+		long NextRun = 0;
+		long CountDown = 0;
 		long RunEvery = 0;
-		short ShakesOrTurns;
-		long LastSave;
+		short ShakesOrTurns = 0;
+		long LastSave = 0;
 	};
 	struct MemAddress{
 		int AccType; //id
@@ -72,20 +72,14 @@ namespace Utils{
 			int index = 0;
 			int memSize = sizeof(NextRunMemory);
 
-			SerialExt::Debug(F("memSize"), memSize);
-			SerialExt::Debug(F("_memAddresses.size"), _memAddresses.size());
-
 			if (_memAddresses.size() <= 0)
 				_memAddresses.push_back(MemAddress{ mem.AccType, memSize });
-
-			SerialExt::Debug(F("_memAddresses.size1"), _memAddresses.size());
 
 			auto& memAddress = _memAddresses[0];
 			bool foundMem = false;
 			int agregateMemSize = 0;
 			for (auto& memAddr : _memAddresses)
 			{
-				SerialExt::Debug(F("memAddr.Index"), memAddr.Index);
 				agregateMemSize += memAddr.Index; //totals incase we have to add a new one
 				if (memAddr.AccType == mem.AccType){
 					index = memAddr.Index - memSize;
@@ -94,19 +88,12 @@ namespace Utils{
 				}
 			}
 
-			SerialExt::Debug(F("foundMem"), foundMem);
-			SerialExt::Debug(F("agregateMemSize"), agregateMemSize);
-
 			if (!foundMem){ //if added, dont re-add
 				agregateMemSize += memSize;
 				_memAddresses.push_back(MemAddress{ mem.AccType, agregateMemSize });
 				index = agregateMemSize;
-
-				SerialExt::Debug(F("foundMem_memAddresses.size"), _memAddresses.size());
 			}
 
-			SerialExt::Debug(F("_memAddresses.size2"), _memAddresses.size());
-			SerialExt::Debug(F("index"), index);
 			return index;
 
 		}
@@ -120,11 +107,11 @@ namespace Utils{
 			int index = GetUpdateIndex(mem);
 			mem.LastSave = now();
 
-			PrintNextRunMemory("mem_Save1", mem);
-
 			NextRunMemory eEEPROMmem = EEPROM.put(index, mem);
 
-			PrintNextRunMemory("eEEPROMmem_Save1", eEEPROMmem);
+			delay(200); //wait for save to complete
+
+			PrintNextRunMemory("eEEPROMmem_Save", eEEPROMmem);
 
 			return eEEPROMmem;
 		}
@@ -136,12 +123,10 @@ namespace Utils{
 
 			int index = GetUpdateIndex(mem); //Move address to the next byte.
 
-			PrintNextRunMemory("mem_Get1", mem);
-
 			NextRunMemory eEEPROMmem; //Variable to store custom object read from EEPROM.
 			EEPROM.get(index, eEEPROMmem);
 
-			PrintNextRunMemory("eEEPROMmem_Get1", eEEPROMmem);
+			PrintNextRunMemory("eEEPROMmem_Get", eEEPROMmem);
 
 			return eEEPROMmem;
 		}

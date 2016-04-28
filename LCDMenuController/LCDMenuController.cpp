@@ -292,12 +292,12 @@ void LCDMenuController::SetSelectedMenu(LCDMenu menu)
 }
 void LCDMenuController::SetShakesOrTurns(AccessoryType accType, short shakesOrTurns){
 	
-	NextRunMemory mem = RTCExt::FindNextRunInfo(accType);
+	NextRunMemory& mem = RTCExt::FindNextRunInfo(accType);
 	mem.ShakesOrTurns = shakesOrTurns;
 }
 int LCDMenuController::GetShakesOrTurns(AccessoryType accType){
 
-	NextRunMemory mem = RTCExt::FindNextRunInfo(accType);
+	NextRunMemory& mem = RTCExt::FindNextRunInfo(accType);
 	int shakes = mem.ShakesOrTurns;
 	return shakes;
 }
@@ -506,7 +506,7 @@ void LCDMenuController::PrintRunInfo(AccessoryType accType)
 {
 	String label;
 
-	NextRunMemory nextRunMem = RTCExt::FindNextRunInfo(accType);
+	NextRunMemory& nextRunMem = RTCExt::FindNextRunInfo(accType);
 
 	if (accType == AccessoryType::Feeder)
 		label = F("Feed");
@@ -597,7 +597,7 @@ String LCDMenuController::GetTimeFrequency(AccessoryType accType)
 	long runEvery;
 	long nextRun;
 
-	NextRunMemory nextRunMem = RTCExt::FindNextRunInfo(accType);
+	NextRunMemory& nextRunMem = RTCExt::FindNextRunInfo(accType);
 
 	runEvery = nextRunMem.RunEvery;
 	nextRun = nextRunMem.NextRun;
