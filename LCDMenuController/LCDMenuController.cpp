@@ -19,6 +19,7 @@ void LCDMenuController::Init(){
 
 	if (!RTCExt::IsRTCTimeSet())
 		SetClockMenu();
+
 }
 void LCDMenuController::CreateMenus()
 {
@@ -302,35 +303,6 @@ int LCDMenuController::GetShakesOrTurns(AccessoryType accType){
 	return shakes;
 }
 
-void LCDMenuController::PrintLine(short lineNum, String text)
-{
-	_lcd.setCursor(0, lineNum);
-	_lcd.print(text);
-}
-
-void LCDMenuController::PrintMenu(LCDMenu menu)
-{
-	/*SerialExt::Debug("menu", menu.Text);
-	SerialExt::Debug("option", menu.OptionText);
-	*/
-
-	//auto menu = GetSelectedMenu();
-	//String optionText = menu.OptionText;
-	String optionText = menu.OptionText;
-
-	String rangeOptionText = GetRangeOption(menu.TheRangeType, menu.AccType);
-
-	if (rangeOptionText != "")
-	{
-		optionText = rangeOptionText;
-		//optionText = StaticUtils::ParseString(rangeOptionText);
-	}
-
-	_lcd.clear();
-	PrintLine(0, menu.Text);
-	PrintLine(1, optionText);
-}
-
 //template<typename T = void>
 //void Clear()
 //{
@@ -366,8 +338,13 @@ void LCDMenuController::SelectMainMenu()
 
 	delay(_selectDelay);
 
+	//timeout menu after 15min, 900
+	long menuTimeout = RTCExt::GetRTCTime() + 900;
 	while (_selectedMenuId > -1)
 	{
+		if (RTCExt::GetRTCTime() > menuTimeout)
+			ExitMainMenu();
+
 		DetectKeyPress();
 		delay(200);
 	}
@@ -378,7 +355,6 @@ void LCDMenuController::ExitMainMenu()
 	_selectedMenuId = -1;
 	_selectedOptionId = -1;
 }
-
 
 void LCDMenuController::LimitRange(int lower, int upper)
 {
@@ -411,8 +387,6 @@ void LCDMenuController::NextOption()
 	PrintMenu(selectedMenu);
 }
 
-
-
 void LCDMenuController::PreviousOption()
 {
 
@@ -431,7 +405,6 @@ void LCDMenuController::PreviousOption()
 	PrintMenu(selectedMenu);
 }
 
-
 void LCDMenuController::LeftButton()
 {
 	//navigates back
@@ -441,9 +414,6 @@ void LCDMenuController::LeftButton()
 	SetSelectedMenu(prevMenu);
 	PrintMenu(prevMenu);
 }
-
-
-
 
 void LCDMenuController::SelectButton()
 {
@@ -458,7 +428,6 @@ void LCDMenuController::SelectButton()
 	delay(_selectDelay);
 
 }
-
 
 void LCDMenuController::DetectKeyPress()
 {
@@ -487,8 +456,43 @@ void LCDMenuController::DetectKeyPress()
 	}
 
 }
+
+void LCDMenuController::PrintMenu(LCDMenu menu)
+{
+	/*SerialExt::Debug("menu", menu.Text);
+	SerialExt::Debug("option", menu.OptionText);
+	*/
+
+	//auto menu = GetSelectedMenu();
+	//String optionText = menu.OptionText;
+	String optionText = menu.OptionText;
+
+	String rangeOptionText = GetRangeOption(menu.TheRangeType, menu.AccType);
+
+	if (rangeOptionText != "")
+	{
+		optionText = rangeOptionText;
+		//optionText = StaticUtils::ParseString(rangeOptionText);
+	}
+
+	_lcd.clear();
+	//_lcd.noAutoscroll();
+	//if (menu.Text.length() > 16){
+	//	_lcd.autoscroll();
+	//}
+	//_lcd.setCursor(0, 0);
+	PrintLine(0, menu.Text);
+	PrintLine(1, optionText);
+}
+
+void LCDMenuController::PrintLine(short lineNum, String text)
+{
+	_lcd.setCursor(0, lineNum);
+	_lcd.print(text);
+}
 void LCDMenuController::PrintTime()
 {
+	_lcd.clear();
 	auto time = RTCExt::GetRTCTime();
 	//auto theMonth = month(time);
 
@@ -502,35 +506,27 @@ void LCDMenuController::PrintTime()
 	delay(_scrollDelay);
 }
 
-void LCDMenuController::PrintRunInfo(AccessoryType accType)
+void LCDMenuController::PrintRunInfo(String label, AccessoryType accType)
 {
-	String label;
-
+	RTCExt::UpdateNextRun(accType);
 	NextRunMemory& nextRunMem = RTCExt::FindNextRunInfo(accType);
-
-	if (accType == AccessoryType::Feeder)
-		label = F("Feed");
-	else if (accType == AccessoryType::DryDoser)
-		label = F("Dose");
 	
-	if (nextRunMem.RunEvery == 0LL){
-		PrintLine(0, label + " Not Set");
+	if (nextRunMem.RunEvery <= 0){
+		_lcd.clear();
+		PrintLine(0, label);
+		PrintLine(1, F("Not Set"));
+		delay(_scrollDelay);
 		return;
 	}
 
+	String lastRun = Time::GetShortDateTimeString(nextRunMem.LastRun);
+	String countDown = Time::GetTimeRemainingString(nextRunMem.CountDown);
+	String nextRun = Time::GetShortDateTimeString(nextRunMem.NextRun);
 
+	
 	for (int i = 0; i <= 3; i++)
 	{
-		RTCExt::UpdateNextRun(accType);
-
-		String nextRun;
-		String lastRun;
-		String countDown;
-
-		lastRun = Time::GetShortDateTimeString(nextRunMem.LastRun);
-		countDown = Time::GetTimeRemainingString(nextRunMem.CountDown);
-		nextRun = Time::GetShortDateTimeString(nextRunMem.NextRun);
-
+		_lcd.clear();
 		switch (i) {
 		case 0:
 			PrintLine(0, label + " Last Run:");
@@ -547,37 +543,54 @@ void LCDMenuController::PrintRunInfo(AccessoryType accType)
 		default:
 			break;
 		}
+		
+		//_lcd.clear();
 		delay(_scrollDelay);
+		//_lcd.clear();
 	}
-}
-void LCDMenuController::Scroll()
-{
-	_lcd.clear();
-
-	switch (_scrollIndex) {
-	case 0:
-		PrintInstructions();
-		break;
-	case 1:
-		PrintRunInfo(AccessoryType::Feeder);
-		break;
-	case 2:
-		PrintRunInfo(AccessoryType::DryDoser);
-		break;
-	default:
-		PrintTime();
-		_scrollIndex = 0;
-		return;
-	}
-	_scrollIndex++;
-
 }
 void LCDMenuController::PrintInstructions()
 {
+	_lcd.clear();
 	PrintLine(0, F("Hold [Select]"));
 	PrintLine(1, F("for Menu"));
 	delay(_scrollDelay);
 }
+
+void LCDMenuController::Scroll()
+{
+	static bool scrolling; //= (_scrollIndex < 3);
+
+	if (scrolling) //dont scroll if already scrolling
+		return;
+
+	scrolling = true;
+
+	while (scrolling){
+		
+		SerialExt::Debug("_scrollIndex", _scrollIndex);
+		SerialExt::Debug("scrolling_time_beg", RTCExt::GetRTCTimeString());
+
+		switch (_scrollIndex) {
+		case 0:
+			PrintInstructions();
+			break;
+		case 1:
+			PrintRunInfo(F("Feed"),AccessoryType::Feeder);
+			break;
+		case 2:
+			PrintRunInfo(F("Dose"),AccessoryType::DryDoser);
+			break;
+		default:
+			PrintTime();
+			_scrollIndex = 0;
+			scrolling = false;
+			return;
+		}
+		_scrollIndex++;
+	}//scrolling
+}
+
 String LCDMenuController::GetTimeLong(AccessoryType accType)
 {
 	long time;

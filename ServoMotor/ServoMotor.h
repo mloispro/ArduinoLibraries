@@ -34,11 +34,12 @@ private:
 	int GetNextRunInSeconds();
 	bool IsSwitchOn(bool isTimeToRun);
 	void RunServo();
+	int Calibrate();
 protected:
 	int _theSpeed;
 	AccessoryType ServoType;
 
-	ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds);
+	/*ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds);
 	ServoMotor(Servo servo, int pin, int shakes, short relayPin);
 	ServoMotor(Servo servo, int pin, int shakes);
 	ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds);
@@ -47,7 +48,7 @@ protected:
 
 	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed);
 	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin);
-	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, long runEverySeconds);
+	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, long runEverySeconds);*/
 	ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, long runEverySeconds, AnalogSwitch theSwitch);
 	ServoMotor();
 	

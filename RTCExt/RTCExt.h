@@ -92,8 +92,11 @@ namespace Utils {
 		{
 			auto time = GetRTCTime();
 			auto theYear = year(time);
-			if (theYear < 2016)return false;
-			return true;
+			//SerialExt::Debug("theYear", theYear);
+			if (theYear >= 2016)
+				return true;
+			else
+				return false;
 		}
 		template<typename T=void>
 		void LoadNextRunInfos(){
@@ -110,8 +113,6 @@ namespace Utils {
 		template<typename T = void>
 		void Init(){
 			
-			LoadNextRunInfos();
-
 			setSyncProvider(RTC.get);   // the function to get the time from the RTC
 			if (timeStatus() != timeSet)
 				SerialExt::Print(F("Unable to sync with the RTC, time not set."));
@@ -120,6 +121,9 @@ namespace Utils {
 				SerialExt::Print(F("RTC Initialized: "), digitalTime);
 				//_initalized = true;
 			}
+			delay(200);//wait for rtc
+			
+			LoadNextRunInfos();
 		}
 		template<typename T = AccessoryType>
 		NextRunMemory& FindNextRunInfo(T&& accType){
@@ -202,9 +206,9 @@ namespace Utils {
 			nextRunMem.NextRun = nextRun;
 			nextRunMem.LastRun = lastRun;
 
-			//todo change to 900
+			
 			//save every 15 min. 900
-			long saveTime = nextRunMem.LastSave + 60;
+			long saveTime = nextRunMem.LastSave + 900;
 			if (saveTime <= rtcTime){
 				SerialExt::Debug("time to save nr", GetDigitalTimeString(rtcTime));
 				SaveNextRunInfo(accType);
@@ -371,7 +375,21 @@ namespace Utils {
 			nextRunMem.LastRun = GetRTCTime();
 			UpdateNextRun(accType);
 		}
-
+		template<typename T = void>
+		String GetRTCTimeString()
+		{
+			auto rtcTime = GetRTCTime();
+			auto digTime = Time::GetTimeString(rtcTime, true);
+			//auto timeString = Time::FormatDigialTime(digTime.Hours, digTime.Minutes, digTime.Seconds, true);
+			return digTime;
+		}
+		template<typename T = void>
+		String GetRTCDateTimeString()
+		{
+			auto rtcTime = GetRTCTime();
+			auto timeString = Time::GetShortDateTimeString(rtcTime);
+			return timeString;
+		}
 
 	}
 }

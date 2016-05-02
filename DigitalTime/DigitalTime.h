@@ -35,12 +35,13 @@ namespace Models {
 namespace Time{
 	using namespace Models;
 
-	template<typename H = int, typename M = int, typename S = int>
-	String FormatDigialTime(H&& hours, M&& minutes, S&& seconds)
+	template<typename H = int, typename M = int, typename S = int, typename I = bool>
+	String FormatDigialTime(H&& hours, M&& minutes, S&& seconds, I&& includeSeconds)
 	{
 		H convH(hours);
 		M convM(minutes);
 		S convS(seconds);
+		I convI(includeSeconds);
 
 		String hourString = String(hours);
 		if (hours < 10)
@@ -48,14 +49,16 @@ namespace Time{
 		String minString = String(minutes);
 		if (minutes < 10)
 			minString = "0" + minString;
-		//String secString = String(seconds);
-		//if (seconds < 10)
-		//	secString = "0" + secString;
-
-		//String timeString = String(hours) + ":";
+	
 		String timeString = hourString + ":";
 		timeString += minString; //+":";
-		//timeString += secString;
+		
+		if (includeSeconds){
+			String secString = String(seconds);
+			if (seconds < 10)
+				secString = "0" + secString;
+			timeString = timeString + ":" + secString;
+		}
 
 		return timeString;
 	}
@@ -64,7 +67,7 @@ namespace Time{
 	String FormatDigialTime(T&& time){
 
 		T conv(time);
-		String timeString = FormatDigialTime(time.Hours, time.Minutes, time.Seconds);
+		String timeString = FormatDigialTime(time.Hours, time.Minutes, time.Seconds, false);
 
 		return timeString;
 	}
@@ -90,6 +93,17 @@ namespace Time{
 		String runTime = FormatDigialTime(time);
 		return runTime;
 	}
+
+	template<typename T = time_t, typename I = bool>
+	String GetTimeString(T&& seconds, I&& includeSeconds){
+		T conv(seconds);
+
+		DigitalTime time = GetDigitalTime(seconds);
+
+		String runTime = FormatDigialTime(time.Hours, time.Minutes, time.Seconds, includeSeconds);
+		return runTime;
+	}
+
 	template<typename T = time_t>
 	String GetMonthAndDateString(T&& seconds){
 		T conv(seconds);
@@ -168,7 +182,7 @@ namespace Time{
 		T conv(seconds);
 
 		DigitalTime time = GetTimeRemaining(seconds);
-		auto timeString = FormatDigialTime(time.Hours, time.Minutes, time.Seconds);
+		auto timeString = FormatDigialTime(time.Hours, time.Minutes, time.Seconds, false);
 		return timeString;
 	}
 

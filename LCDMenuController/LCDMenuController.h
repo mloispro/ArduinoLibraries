@@ -103,7 +103,7 @@ namespace Controllers {
 	public:
 		int _optionCount;
 
-		LCDMenuController() :_lcd(8, 9, 4, 5, 6, 7){ Init(); }
+		LCDMenuController() :_lcd(8, 9, 4, 5, 6, 7){}
 		//LCDMenuController();
 
 		void Init();
@@ -115,7 +115,7 @@ namespace Controllers {
 		void SelectMainMenu();
 		void ExitMainMenu();
 
-		void PrintRunInfo(AccessoryType accType);
+		void PrintRunInfo(String lablel, AccessoryType accType);
 		void PrintTime();
 		void Scroll();
 

@@ -2,12 +2,12 @@
 #include "RODoser.h"
 
 RODoser::RODoser(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
-ServoMotor(servo, pin, shakes, relayPin, runEverySeconds, theSwitch){
+ServoMotor(servo, pin, shakes, 0, 14, relayPin, runEverySeconds, theSwitch){
 	ServoType = AccessoryType::DryDoser;
 };
 
 RODoser::RODoser(Servo servo, int pin, int shakes, long runEverySeconds, AnalogSwitch theSwitch) :
-ServoMotor(servo, pin, shakes, runEverySeconds, theSwitch){
+ServoMotor(servo, pin, shakes, 0, 14, -1, runEverySeconds, theSwitch){
 	ServoType = AccessoryType::DryDoser;
 };
 

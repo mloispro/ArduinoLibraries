@@ -1,26 +1,26 @@
 
 #include "ServoMotor.h"
 
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes) :
-	ServoMotor(servo, pin, shakes, 0, 14){};
-
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds) :
-	ServoMotor(servo, pin, shakes, 0, 14, 0, runEverySeconds){};
-
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
-	ServoMotor(servo, pin, shakes, 0, 14, relayPin, runEverySeconds, theSwitch){};
-
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds, AnalogSwitch theSwitch) :
-	ServoMotor(servo, pin, shakes, 0, 14, -1, runEverySeconds, theSwitch){};
-
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed) :
-	ServoMotor(servo, pin, shakes, pos, theSpeed, 0){};
-
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin) :
-	ServoMotor(servo, pin, shakes, 0, 14, relayPin, 0){};
-
-ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin) :
-	ServoMotor(servo, pin, shakes, 0, 14, relayPin){};
+//ServoMotor::ServoMotor(Servo servo, int pin, int shakes) :
+//	ServoMotor(servo, pin, shakes, 0, 14){};
+//
+//ServoMotor::ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds) :
+//	ServoMotor(servo, pin, shakes, 0, 14, 0, runEverySeconds){};
+//
+//ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
+//	ServoMotor(servo, pin, shakes, 0, 14, relayPin, runEverySeconds, theSwitch){};
+//
+//ServoMotor::ServoMotor(Servo servo, int pin, int shakes, long runEverySeconds, AnalogSwitch theSwitch) :
+//	ServoMotor(servo, pin, shakes, 0, 14, -1, runEverySeconds, theSwitch){};
+//
+//ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed) :
+//	ServoMotor(servo, pin, shakes, pos, theSpeed, 0){};
+//
+//ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin) :
+//	ServoMotor(servo, pin, shakes, 0, 14, relayPin, 0){};
+//
+//ServoMotor::ServoMotor(Servo servo, int pin, int shakes, short relayPin) :
+//	ServoMotor(servo, pin, shakes, 0, 14, relayPin){};
 
 ServoMotor::ServoMotor(Servo servo, int pin, int shakes, int pos, int theSpeed, short relayPin, long runEverySeconds, AnalogSwitch theSwitch) :
 TheServo(servo), _pin(pin), Shakes(shakes), _pos(pos), _theSpeed(theSpeed), RelayPin(relayPin), RunEverySeconds(runEverySeconds), TheSwitch(theSwitch){
@@ -58,8 +58,8 @@ void ServoMotor::Init(){
 	
 	NextRunMemory& mem = RTCExt::FindNextRunInfo(ServoType);
 
-	SerialExt::Debug(F("mem.RunEvery"), (long)mem.RunEvery);
-	SerialExt::Debug(F("RunEverySeconds"), RunEverySeconds);
+	SerialExt::Debug(F("servo_mem.RunEvery"), mem.RunEvery);
+	SerialExt::Debug(F("servo_RunEverySeconds"), RunEverySeconds);
 
 	if (mem.RunEvery <= 0 && RunEverySeconds >= 0)
 		mem.RunEvery = RunEverySeconds;
@@ -68,7 +68,10 @@ void ServoMotor::Init(){
 		RunEverySeconds = mem.RunEvery;
 		//RTCExt::Init(); //using rtc
 	}
-		
+
+	SerialExt::Debug(F("servo_mem.RunEvery2"), mem.RunEvery);
+	SerialExt::Debug(F("servo_RunEverySeconds2"), RunEverySeconds);
+
 	TheServo.attach(_pin);
 	TheServo.write(_pos);
 	delay(200);
@@ -111,6 +114,8 @@ void ServoMotor::Run(){
 
 	if (RunEverySeconds > 0)
 		mem.LastRun = RTCExt::GetRTCTime(); //using rtc
+
+	SerialExt::Debug(F("mem.LastRun_servo"), mem.LastRun);
 }
 
 void ServoMotor::RunServo(){
@@ -164,7 +169,7 @@ bool ServoMotor::ShouldRunMotor(bool printToSerial)
 {
 	bool runMotor;
 	bool isTimeToRun = RTCExt::IsTimeToRun(ServoType);
-	//SerialExt::Debug("Is Time To Run: ", isTimeToRun);
+	SerialExt::Debug("Is Time To Run: ", isTimeToRun);
 
 	if (printToSerial && RunEverySeconds>0) //using rtc
 	{
@@ -190,8 +195,8 @@ bool ServoMotor::IsSwitchOn(bool isTimeToRun){
 		if (isTimeToRun)
 			isSwitchOn = TheSwitch.IsOn();
 
-		/*if (isSwitchOn)
-			SerialExt::Debug("Switch Val: ", TheSwitch.SwitchReading);*/
+		if (isSwitchOn)
+			SerialExt::Debug("Switch Val: ", TheSwitch.SwitchReading);
 	}
 	else{
 		isSwitchOn = true; //no switch to turn it on.
@@ -245,7 +250,55 @@ bool ServoMotor::ShouldRunMotorDemo(int incomingByte){
 		return false;
 	}
 }
+int ServoMotor::Calibrate()
+{
+	SerialExt::Debug("Calibrate Servo:");
+	SerialExt::Debug("Enter 0 to 180, -1 to exit");
 
+	int degrees;
+	int mynum[3] = { 0, 0, 0 };
+	while (true){
+		for (int i = 0; i < 3; i++) {
+			while (Serial.available() == 0); //pause until data is recieved from computer<-- this line added 
+
+			byte inByte = Serial.read();
+
+			if (inByte == '-1')
+				return degrees;
+
+			switch (inByte) {
+			case '0': mynum[i] = 0;
+				break;
+			case '1': mynum[i] = 1;
+				break;
+			case '2': mynum[i] = 2;
+				break;
+			case '3': mynum[i] = 3;
+				break;
+			case '4': mynum[i] = 4;
+				break;
+			case '5': mynum[i] = 5;
+				break;
+			case '6': mynum[i] = 6;
+				break;
+			case '7': mynum[i] = 7;
+				break;
+			case '8': mynum[i] = 8;
+				break;
+			case '9': mynum[i] = 9;
+				break;
+			default: mynum[i] = 0;
+				break;
+			}
+		}
+		degrees = mynum[0] * 100 + mynum[1] * 10 + mynum[2];
+		SerialExt::Debug("Degrees:", degrees);
+		TheServo.write(degrees);
+	}
+	
+	
+	return degrees;
+}
 void ServoMotor::TranslateSpeed(){
 	if (_theSpeed >= 14){
 		_theSpeed = 2;

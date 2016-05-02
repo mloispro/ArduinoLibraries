@@ -28,11 +28,14 @@ private:
 	 void Feed();
 
 public:
-	
-	 FishFeeder(Servo servo, int pin, int shakes);
+	//FishFeeder();
+	FishFeeder(Servo servo, int pin, int shakes, long runEverySeconds);
+	FishFeeder(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds);
 	 static vector<FishFeeder> CreateFeeders(int numOfFeeders, int startingPin);
 	 static void FeedAll(vector<FishFeeder> feeders, int potVal);
 	 static void RunDemo(vector<FishFeeder> feeders);
+	 static FishFeeder CreateFeeder(int pin, short shakes);
+	 static void FeedAll(vector<FishFeeder> feeders);
 };
 
 //vector<FishFeeder> FishFeeder::Feeders;
