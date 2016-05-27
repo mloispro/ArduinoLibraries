@@ -393,7 +393,8 @@ namespace Utils {
 
 	}
 }
-
+extern Models::NextRunMemory Utils::RTCExt::NextDoseInfo;
+extern Models::NextRunMemory Utils::RTCExt::NextFeedInfo;
 
 #endif
 

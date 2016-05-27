@@ -56,6 +56,11 @@ void ServoMotor::Init(){
 	if (RelayPin >= 2 && RelayPin <= 13)
 		pinMode(RelayPin, OUTPUT);
 	
+	if (_pos <= 0)
+		_pos = 4;
+	else if (_pos >= 176)
+		_pos = 176;
+
 	NextRunMemory& mem = RTCExt::FindNextRunInfo(ServoType);
 
 	SerialExt::Debug(F("servo_mem.RunEvery"), mem.RunEvery);
@@ -174,11 +179,13 @@ bool ServoMotor::ShouldRunMotor(bool printToSerial)
 	if (printToSerial && RunEverySeconds>0) //using rtc
 	{
 		//disabling for now since we have lcd
-		/*SerialExt::Print("Time: ", RTCExt::GetShortDateTimeString(RTCExt::GetRTCTime()));
-		SerialExt::Print("Run Count Down: ", RTCExt::GetDigitalTimeString(RunCountDownInSeconds));
-		SerialExt::Print("Next Run: ", RTCExt::GetShortDateTimeString(NextRunInSeconds));
-		SerialExt::Print("Last Run: ", RTCExt::GetShortDateTimeString(LastRunInSeconds));
-		SerialExt::Print("Run Every: ", RTCExt::GetDigitalTimeString(RunEverySeconds));*/
+		NextRunMemory& nextRunMem = RTCExt::FindNextRunInfo(ServoType);
+		
+		SerialExt::Print("Time: ", RTCExt::GetRTCDateTimeString());
+		SerialExt::Print("Run Count Down: ", Time::GetShortDateTimeString(nextRunMem.CountDown));
+		SerialExt::Print("Next Run: ", Time::GetShortDateTimeString(nextRunMem.NextRun));
+		SerialExt::Print("Last Run: ", Time::GetShortDateTimeString(nextRunMem.LastRun));
+		SerialExt::Print("Run Every: ", Time::GetShortDateTimeString(nextRunMem.RunEvery));
 	}
 
 	bool isSwitchOn = IsSwitchOn(isTimeToRun);
@@ -256,42 +263,28 @@ int ServoMotor::Calibrate()
 	SerialExt::Debug("Enter 0 to 180, -1 to exit");
 
 	int degrees;
-	int mynum[3] = { 0, 0, 0 };
+	
 	while (true){
-		for (int i = 0; i < 3; i++) {
-			while (Serial.available() == 0); //pause until data is recieved from computer<-- this line added 
 
-			byte inByte = Serial.read();
+		while (Serial.available() == 0); //pause until data is recieved from computer<-- this line added 
 
-			if (inByte == '-1')
-				return degrees;
+		int incomingNum = SerialExt::Read();
 
-			switch (inByte) {
-			case '0': mynum[i] = 0;
-				break;
-			case '1': mynum[i] = 1;
-				break;
-			case '2': mynum[i] = 2;
-				break;
-			case '3': mynum[i] = 3;
-				break;
-			case '4': mynum[i] = 4;
-				break;
-			case '5': mynum[i] = 5;
-				break;
-			case '6': mynum[i] = 6;
-				break;
-			case '7': mynum[i] = 7;
-				break;
-			case '8': mynum[i] = 8;
-				break;
-			case '9': mynum[i] = 9;
-				break;
-			default: mynum[i] = 0;
-				break;
-			}
+		SerialExt::Debug("Entered", incomingNum);
+
+		if (incomingNum == -1) //not working
+			return degrees;
+
+		if (incomingNum <= 4){
+			degrees = 4;
 		}
-		degrees = mynum[0] * 100 + mynum[1] * 10 + mynum[2];
+		else if (incomingNum >= 176){
+			degrees = 176;
+		}
+		else{
+			degrees = incomingNum;
+		}
+		
 		SerialExt::Debug("Degrees:", degrees);
 		TheServo.write(degrees);
 	}

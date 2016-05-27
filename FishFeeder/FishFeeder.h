@@ -28,7 +28,7 @@ private:
 	 void Feed();
 
 public:
-	//FishFeeder();
+	FishFeeder();
 	FishFeeder(Servo servo, int pin, int shakes, long runEverySeconds);
 	FishFeeder(Servo servo, int pin, int shakes, short relayPin, long runEverySeconds);
 	 static vector<FishFeeder> CreateFeeders(int numOfFeeders, int startingPin);

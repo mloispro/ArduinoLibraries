@@ -34,7 +34,7 @@ private:
 	int GetNextRunInSeconds();
 	bool IsSwitchOn(bool isTimeToRun);
 	void RunServo();
-	int Calibrate();
+	
 protected:
 	int _theSpeed;
 	AccessoryType ServoType;
@@ -56,6 +56,7 @@ protected:
 	void Run();
 	static void RunMotorDemos(vector<ServoMotor> motors);
 	static void RunMotorDemo(Servo myServo);
+	
 public:
 	Servo TheServo;
 	AnalogSwitch TheSwitch;
@@ -76,7 +77,7 @@ public:
 	//1 to run, 2 to run demo
 	static bool ShouldRunMotorBySerialInput(int incomingByte);
 	static bool ShouldRunMotorDemo(int incomingByte);
-
+	int Calibrate();
 };
 
 #endif

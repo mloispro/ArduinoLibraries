@@ -2,6 +2,9 @@
 #include "FishFeeder.h"
 
 //FishFeeder::FishFeeder(int pin) : ServoMotor(pin){};
+FishFeeder::FishFeeder(){
+	ServoType = AccessoryType::Feeder;
+}
 FishFeeder::FishFeeder(Servo servo, int pin, int shakes, long runEverySeconds) :
 ServoMotor(servo, pin, shakes, 0, 14, -1, runEverySeconds, AnalogSwitch()){
 	ServoType = AccessoryType::Feeder;
@@ -57,6 +60,8 @@ void FishFeeder::FeedAll(vector<FishFeeder> feeders){
 	
 	for (int thisFeeder = 0; thisFeeder < feeders.size(); thisFeeder++) {
 		FishFeeder feeder = feeders[thisFeeder];
+
+		//SerialExt::Debug("thisFeeder", thisFeeder);
 
 		feeder.Feed();
 	}
